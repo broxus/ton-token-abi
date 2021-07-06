@@ -13,6 +13,7 @@ path = "tests/progress.rs"
 
 [dev-dependencies]
 trybuild = "1.0.42"
+nekoton = { git = "https://github.com/broxus/nekoton.git" }
 
 [dependencies]
 hex = "0.4"
@@ -21,6 +22,5 @@ proc-macro2 = "1.0.27"
 quote = "1.0.9"
 syn = { version = "1.0.72", features = ["extra-traits"] }
 
-nekoton = { git = "https://github.com/broxus/nekoton.git" }
 ton_abi = { git = "https://github.com/tonlabs/ton-labs-abi.git" }
 ton_types = { git = "https://github.com/tonlabs/ton-labs-types.git" }

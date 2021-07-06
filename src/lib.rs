@@ -119,5 +119,5 @@ fn name_of(f: &syn::Field) -> Option<String> {
         lit => panic!("Expected string, found {:?}", lit),
     }
 
-    return name;
+    name
 }
