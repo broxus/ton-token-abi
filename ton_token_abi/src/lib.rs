@@ -29,12 +29,12 @@ pub fn derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                     let token = tokens.next();
                     let name = match &token {
                         Some(token) => token.name.clone(),
-                        None => return Err(nekoton::helpers::abi::ParserError::InvalidAbi),
+                        None => return Err(ton_token_parser::ParserError::InvalidAbi),
                     };
                     if name == #attr_name {
                         token.try_parse()?
                     } else {
-                        return Err(nekoton::helpers::abi::ParserError::InvalidAbi);
+                        return Err(ton_token_parser::ParserError::InvalidAbi);
                     }
                 }
             }
@@ -46,11 +46,11 @@ pub fn derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     });
 
     let expanded = quote! {
-        impl nekoton::helpers::abi::ParseToken<#name> for ton_abi::TokenValue {
-            fn try_parse(self) -> nekoton::helpers::abi::ContractResult<#name> {
+        impl ton_token_parser::ParseToken<#name> for ton_abi::TokenValue {
+            fn try_parse(self) -> ton_token_parser::ContractResult<#name> {
                 let mut tokens = match self {
                     ton_abi::TokenValue::Tuple(tokens) => tokens.into_iter(),
-                    _ => return Err(nekoton::helpers::abi::ParserError::InvalidAbi),
+                    _ => return Err(ton_token_parser::ParserError::InvalidAbi),
                 };
 
                 std::result::Result::Ok(#name {

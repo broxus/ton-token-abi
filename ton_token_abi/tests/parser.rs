@@ -1,7 +1,7 @@
-use nekoton::helpers::abi::ParseToken;
 use num_bigint::BigUint;
-use token_abi::TokenAbi;
 use ton_abi::Uint;
+use ton_token_abi::TokenAbi;
+use ton_token_parser::ParseToken;
 use ton_types::UInt256;
 
 #[derive(TokenAbi)]

@@ -1,6 +1,6 @@
-use nekoton::helpers::abi::ParseToken;
-use token_abi::TokenAbi;
 use ton_abi::Uint;
+use ton_token_abi::TokenAbi;
+use ton_token_parser::{ParseToken, ParserError};
 
 #[derive(TokenAbi)]
 pub struct ValidDefinition {
@@ -20,10 +20,9 @@ fn main() {
 
     let tuple = ton_abi::Token::new("tuple", ton_abi::TokenValue::Tuple(tokens));
 
-    let valid: Result<ValidDefinition, nekoton::helpers::abi::ParserError> =
-        tuple.clone().try_parse();
+    let valid: Result<ValidDefinition, ParserError> = tuple.clone().try_parse();
     assert!(valid.is_ok());
 
-    let invalid: Result<InvalidDefinition, nekoton::helpers::abi::ParserError> = tuple.try_parse();
+    let invalid: Result<InvalidDefinition, ParserError> = tuple.try_parse();
     assert!(invalid.is_err());
 }

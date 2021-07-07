@@ -1,0 +1,27 @@
+[package]
+name = "ton_token_abi"
+version = "0.1.0"
+authors = ["Alexey Pashinov <pashinov93@gmail.com>"]
+edition = "2018"
+
+[lib]
+proc-macro = true
+
+[[test]]
+name = "tests"
+path = "tests/progress.rs"
+
+[dev-dependencies]
+hex = "0.4"
+num-bigint = { version = "0.2", features = ["serde"] }
+trybuild = "1.0.42"
+
+ton_abi = { git = "https://github.com/tonlabs/ton-labs-abi.git" }
+ton_types = { git = "https://github.com/tonlabs/ton-labs-types.git" }
+
+ton_token_parser = { path = "../ton_token_parser" }
+
+[dependencies]
+proc-macro2 = "1.0.27"
+quote = "1.0.9"
+syn = { version = "1.0.72", features = ["extra-traits"] }
