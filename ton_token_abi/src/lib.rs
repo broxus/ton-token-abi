@@ -19,10 +19,13 @@ pub fn derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         let name = f.ident.as_ref().unwrap();
 
         if abi_of(&f).is_some() {
-            let attr_name = match name_of(&f) {
+            let (an, at) = get_attributes(&f);
+            let attr_name = match an {
                 Some(v) => v,
                 None => name.to_string(),
             };
+
+            let try_parse = try_parse(at);
 
             quote! {
                 #name: {
@@ -32,7 +35,7 @@ pub fn derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                         None => return Err(ton_token_parser::ParserError::InvalidAbi),
                     };
                     if name == #attr_name {
-                        token.try_parse()?
+                        #try_parse
                     } else {
                         return Err(ton_token_parser::ParserError::InvalidAbi);
                     }
@@ -72,34 +75,47 @@ fn abi_of(f: &syn::Field) -> Option<&syn::Attribute> {
     None
 }
 
-fn name_of(f: &syn::Field) -> Option<String> {
-    let name: Option<String>;
+fn get_attributes(f: &syn::Field) -> (Option<String>, Option<String>) {
+    let mut name: Option<String> = None;
+    let mut typename: Option<String> = None;
 
-    let g = abi_of(f)?;
+    let g = abi_of(f).unwrap_or_else(|| panic!("Expected `abi(name = \"...\", \"$typename\")`"));
 
-    let meta = match g.parse_meta() {
-        Ok(syn::Meta::List(mut nvs)) => {
+    match g.parse_meta() {
+        Ok(syn::Meta::List(nvs)) => {
             // list here is .. in #[abi(..)]
             assert!(nvs.path.is_ident("abi"));
-            if nvs.nested.len() != 1 {
-                panic!("Expected `abi(name = \"...\")`");
+            if nvs.nested.len() > 2 {
+                panic!("Expected `abi(name = \"...\", \"$typename\")`");
             }
 
-            // nvs.nested[0] here is (hopefully): name = "Name"
-            match nvs.nested.pop().unwrap().into_value() {
-                syn::NestedMeta::Meta(syn::Meta::NameValue(nv)) => {
-                    if !nv.path.is_ident("name") {
-                        panic!("Expected: `name`; found: {:?}", nv.lit);
+            for meta in nvs.nested.into_iter() {
+                match meta {
+                    syn::NestedMeta::Meta(syn::Meta::NameValue(nv)) => {
+                        if nv.path.is_ident("name") {
+                            match nv.lit {
+                                syn::Lit::Str(s) => {
+                                    name = Some(s.value());
+                                }
+                                lit => panic!("Expected string, found {:?}", lit),
+                            }
+                        } else {
+                            panic!("Expected: `name`; found: {:?}", nv.lit);
+                        }
                     }
-                    nv
+                    syn::NestedMeta::Lit(l) => match l {
+                        syn::Lit::Str(s) => {
+                            typename = Some(s.value());
+                        }
+                        lit => panic!("Expected string, found {:?}", lit),
+                    },
+                    _ => panic!("Invalid nested attribute format"),
                 }
-                _ => panic!("Invalid nested attribute format"),
             }
         }
         Ok(syn::Meta::Path(_)) => {
             // inside of #[] there was just an identifier (`#[abi]`)
             // include to parsing without attributes
-            return None;
         }
         Ok(syn::Meta::NameValue(name_value)) => {
             panic!(
@@ -110,14 +126,100 @@ fn name_of(f: &syn::Field) -> Option<String> {
         Err(err) => {
             panic!("Failed to parse the content of the attribute: {:?}", err);
         }
-    };
-
-    match meta.lit {
-        syn::Lit::Str(s) => {
-            name = Some(s.value());
-        }
-        lit => panic!("Expected string, found {:?}", lit),
     }
 
-    name
+    (name, typename)
+}
+
+fn try_parse(typename: Option<String>) -> proc_macro2::TokenStream {
+    match typename {
+        Some(typename) => {
+            let handler = typename_handler(typename);
+            let parser = quote! {
+                match token {
+                    Some(token) => {
+                        match token.value {
+                            #handler
+                            _ => return Err(ton_token_parser::ParserError::InvalidAbi),
+                        }
+                    },
+                    None => return Err(ton_token_parser::ParserError::InvalidAbi),
+                }
+            };
+            parser
+        }
+        None => {
+            let parser = quote! {
+                token.try_parse()?
+            };
+            parser
+        }
+    }
+}
+
+fn typename_handler(typename: String) -> proc_macro2::TokenStream {
+    match typename.as_str() {
+        "uint8" => {
+            let handler = quote! {
+                ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size:8 }) => {
+                    value.to_u8().ok_or(ton_token_parser::ParserError::InvalidAbi)?
+                },
+            };
+            handler
+        }
+        "uint16" => {
+            let handler = quote! {
+                ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: 16 }) => {
+                    value.to_u16().ok_or(ton_token_parser::ParserError::InvalidAbi)?
+                },
+            };
+            handler
+        }
+        "uint32" => {
+            let handler = quote! {
+                ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: 32 }) => {
+                    value.to_u32().ok_or(ton_token_parser::ParserError::InvalidAbi)?
+                },
+            };
+            handler
+        }
+        "uint64" => {
+            let handler = quote! {
+                ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: 64 }) => {
+                    value.to_u64().ok_or(ton_token_parser::ParserError::InvalidAbi)?
+                },
+            };
+            handler
+        }
+        "uint128" => {
+            let handler = quote! {
+                ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: 128 }) => {
+                    value.to_bytes_be().into()
+                },
+            };
+            handler
+        }
+        "uint256" => {
+            let handler = quote! {
+                ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: 256 }) => {
+                    let mut result = [0; 32];
+                    let data = value.to_bytes_be();
+
+                    let len = std::cmp::min(data.len(), 32);
+                    let offset = 32 - len;
+                    (0..len).for_each(|i| result[i + offset] = data[i]);
+
+                    result.into()
+                },
+            };
+            handler
+        }
+        "bool" => {
+            let handler = quote! {
+                ton_abi::TokenValue::Bool(value) => value,
+            };
+            handler
+        }
+        _ => panic!("Wrong type name"),
+    }
 }

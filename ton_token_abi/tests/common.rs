@@ -1,4 +1,5 @@
 use num_bigint::BigUint;
+use num_traits::ToPrimitive;
 use ton_abi::Uint;
 use ton_token_abi::TokenAbi;
 use ton_token_parser::ParseToken;
@@ -6,25 +7,25 @@ use ton_types::UInt256;
 
 #[derive(TokenAbi)]
 pub struct PendingTransaction {
-    #[abi]
+    #[abi("uint64")]
     id: u64,
-    #[abi(name = "confirmationsMask")]
+    #[abi("uint32", name = "confirmationsMask")]
     confirmations_mask: u32,
-    #[abi(name = "signsRequired")]
+    #[abi("uint8", name = "signsRequired")]
     signs_required: u8,
-    #[abi(name = "signsReceived")]
+    #[abi("uint8", name = "signsReceived")]
     signs_received: u8,
-    #[abi(name = "creator")]
-    _creator: UInt256,
-    #[abi]
+    #[abi("uint256", name = "creator")]
+    creator: UInt256,
+    #[abi("uint8")]
     index: u8,
     //dest: MsgAddressInt,
     #[abi(name = "value")]
     _value: BigUint,
-    #[abi(name = "sendFlags")]
+    #[abi("uint16", name = "sendFlags")]
     send_flags: u16,
     //payload: ton_types::Cell,
-    #[abi]
+    #[abi("bool")]
     bounce: bool,
     #[abi]
     complex: Complex,
@@ -57,6 +58,7 @@ fn main() {
     let confirmations_mask_val: u32 = 17;
     let signs_required_val: u8 = 6;
     let signs_received_val: u8 = 4;
+    let creator_val: UInt256 = UInt256::MAX;
     let index_val: u8 = 2;
     let send_flags_val: u16 = 12;
     let bounce_val = false;
@@ -90,7 +92,10 @@ fn main() {
     );
     let creator = ton_abi::Token::new(
         "creator",
-        ton_abi::TokenValue::Uint(Uint::new(123456789, 256)),
+        ton_abi::TokenValue::Uint(Uint {
+            number: num_bigint::BigUint::from_bytes_be(creator_val.as_slice()),
+            size: 256,
+        }),
     );
     let index = ton_abi::Token::new(
         "index",
@@ -129,6 +134,7 @@ fn main() {
     assert_eq!(data.confirmations_mask, confirmations_mask_val);
     assert_eq!(data.signs_required, signs_required_val);
     assert_eq!(data.signs_received, signs_received_val);
+    assert_eq!(data.creator, creator_val);
     assert_eq!(data.index, index_val);
     assert_eq!(data.send_flags, send_flags_val);
     assert_eq!(data.bounce, bounce_val);

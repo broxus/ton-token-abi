@@ -14,6 +14,7 @@ path = "tests/progress.rs"
 [dev-dependencies]
 hex = "0.4"
 num-bigint = { version = "0.2", features = ["serde"] }
+num-traits = "0.2.14"
 trybuild = "1.0.42"
 
 ton_abi = { git = "https://github.com/tonlabs/ton-labs-abi.git" }
