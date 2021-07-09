@@ -9,6 +9,6 @@ num-bigint = { version = "0.2", features = ["serde"] }
 num-traits = "0.2.14"
 thiserror = "1.0"
 
-ton_abi = { git = "https://github.com/tonlabs/ton-labs-abi.git" }
+ton_abi = { git = "https://github.com/broxus/ton-labs-abi" }
 ton_block = { git = "https://github.com/tonlabs/ton-labs-block.git" }
 ton_types = { git = "https://github.com/tonlabs/ton-labs-types.git" }

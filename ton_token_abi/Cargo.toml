@@ -17,7 +17,7 @@ num-bigint = { version = "0.2", features = ["serde"] }
 num-traits = "0.2.14"
 trybuild = "1.0.42"
 
-ton_abi = { git = "https://github.com/tonlabs/ton-labs-abi.git" }
+ton_abi = { git = "https://github.com/broxus/ton-labs-abi" }
 ton_types = { git = "https://github.com/tonlabs/ton-labs-types.git" }
 
 ton_token_parser = { path = "../ton_token_parser" }
