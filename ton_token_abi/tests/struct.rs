@@ -6,7 +6,7 @@ use ton_token_parser::ParseToken;
 use ton_types::UInt256;
 
 #[derive(TokenAbi)]
-pub struct PendingTransaction {
+struct PendingTransaction {
     #[abi("uint64")]
     id: u64,
     #[abi("uint32", name = "confirmationsMask")]
@@ -32,7 +32,7 @@ pub struct PendingTransaction {
 }
 
 #[derive(TokenAbi)]
-pub struct Complex {
+struct Complex {
     #[abi()]
     number: u8,
     #[abi()]

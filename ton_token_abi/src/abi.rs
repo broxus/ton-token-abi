@@ -28,8 +28,39 @@ pub fn impl_derive(input: syn::DeriveInput) -> Result<proc_macro2::TokenStream, 
 
 fn serialize_body(container: &Container) -> proc_macro2::TokenStream {
     match &container.data {
+        Data::Enum(variants) => serialize_enum(container, variants),
         Data::Struct(StructStyle::Struct, fields) => serialize_struct(container, fields),
         _ => unimplemented!(),
+    }
+}
+
+fn serialize_enum(_container: &Container, variants: &[Variant]) -> proc_macro2::TokenStream {
+    let build_variants = variants
+        .iter()
+        .filter_map(|variant| {
+            variant
+                .original
+                .discriminant
+                .as_ref()
+                .map(|(_, discriminant)| (variant.ident.clone(), discriminant))
+        })
+        .map(|(ident, discriminant)| {
+            let token = quote::ToTokens::to_token_stream(discriminant).to_string();
+            let number = token.parse::<u8>().unwrap();
+
+            quote! {
+                Some(#number) => Ok(EventType::#ident)
+            }
+        });
+
+    quote! {
+        match self {
+            ton_abi::TokenValue::Uint(int) => match int.number.to_u8() {
+                #(#build_variants,)*
+                _ => Err(ton_token_parser::ParserError::InvalidAbi),
+            },
+            _ => Err(ton_token_parser::ParserError::InvalidAbi),
+        }
     }
 }
 
@@ -48,7 +79,7 @@ fn serialize_struct(container: &Container, fields: &[Field]) -> proc_macro2::Tok
                 None => name.to_string(),
             };
             let parse_type = &f.attrs.parse_type;
-            let try_parse = try_parse(parse_type);
+            let try_parse = try_parse_struct(parse_type);
             quote! {
                 #name: {
                     let token = tokens.next();
@@ -78,10 +109,10 @@ fn serialize_struct(container: &Container, fields: &[Field]) -> proc_macro2::Tok
     }
 }
 
-fn try_parse(parse_type: &Option<ParseType>) -> proc_macro2::TokenStream {
+fn try_parse_struct(parse_type: &Option<ParseType>) -> proc_macro2::TokenStream {
     match parse_type {
         Some(parse_type) => {
-            let handler = get_handler(parse_type);
+            let handler = get_handler_struct(parse_type);
             quote! {
                 match token {
                     Some(token) => {
@@ -102,7 +133,7 @@ fn try_parse(parse_type: &Option<ParseType>) -> proc_macro2::TokenStream {
     }
 }
 
-fn get_handler(parse_type: &ParseType) -> proc_macro2::TokenStream {
+fn get_handler_struct(parse_type: &ParseType) -> proc_macro2::TokenStream {
     match parse_type {
         ParseType::UINT8 => {
             quote! {
