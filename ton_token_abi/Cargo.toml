@@ -26,3 +26,4 @@ ton_token_parser = { path = "../ton_token_parser" }
 proc-macro2 = "1.0.27"
 quote = "1.0.9"
 syn = { version = "1.0.72", features = ["extra-traits"] }
+either = "1.5"

@@ -27,15 +27,15 @@ pub struct PendingTransaction {
     //payload: ton_types::Cell,
     #[abi("bool")]
     bounce: bool,
-    #[abi]
+    #[abi()]
     complex: Complex,
 }
 
 #[derive(TokenAbi)]
 pub struct Complex {
-    #[abi]
+    #[abi()]
     number: u8,
-    #[abi]
+    #[abi()]
     flag: bool,
     #[abi(name = "publicKey")]
     public_key: Vec<u8>,
