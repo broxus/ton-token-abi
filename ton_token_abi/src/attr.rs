@@ -8,13 +8,11 @@ use crate::symbol::*;
 
 pub struct Container {
     pub plain: bool,
-    pub parse_type: Option<String>,
 }
 
 impl Container {
     pub fn from_ast(cx: &ParsingContext, input: &syn::DeriveInput) -> Self {
         let mut plain = BoolAttr::none(cx, PLAIN);
-        let mut parse_type = Attr::none(cx, PARSE_TYPE);
 
         for (from, meta_item) in input
             .attrs
@@ -24,19 +22,11 @@ impl Container {
         {
             match (from, &meta_item) {
                 (AttrFrom::Abi, Meta(Path(word))) if word == PLAIN => plain.set_true(word),
-                (AttrFrom::Abi, Lit(lit)) => {
-                    if let Ok(s) = get_lit_str_simple(lit) {
-                        parse_type.set(lit, s.value());
-                    }
-                }
                 (AttrFrom::Abi, _) => {}
             }
         }
 
-        Self {
-            plain: plain.get(),
-            parse_type: parse_type.get(),
-        }
+        Self { plain: plain.get() }
     }
 }
 
