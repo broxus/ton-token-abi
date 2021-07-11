@@ -13,23 +13,43 @@ pub fn impl_derive(input: syn::DeriveInput) -> Result<proc_macro2::TokenStream, 
     cx.check()?;
 
     let ident = &container.ident;
-    let body = serialize_body(&container);
+    let default_body = serialize_body(&container, false);
+    let vec_body = serialize_body(&container, true);
+    let result = match container.data {
+        Data::Enum(_) => {
+            quote! {
+                impl ton_token_parser::ParseToken<#ident> for ton_abi::TokenValue {
+                    fn try_parse(self) -> ton_token_parser::ContractResult<#ident> {
+                        #default_body
+                    }
+                }
 
-    let result = quote! {
-        impl ton_token_parser::ParseToken<#ident> for ton_abi::TokenValue {
-            fn try_parse(self) -> ton_token_parser::ContractResult<#ident> {
-                #body
+            }
+        }
+        Data::Struct(_, _) => {
+            quote! {
+                impl ton_token_parser::ParseToken<#ident> for ton_abi::TokenValue {
+                    fn try_parse(self) -> ton_token_parser::ContractResult<#ident> {
+                        #default_body
+                    }
+                }
+                impl ton_token_parser::ParseToken<#ident> for Vec<ton_abi::Token> {
+                    fn try_parse(self) -> ton_token_parser::ContractResult<#ident> {
+                        #vec_body
+                    }
+                }
             }
         }
     };
-
     Ok(result)
 }
 
-fn serialize_body(container: &Container) -> proc_macro2::TokenStream {
+fn serialize_body(container: &Container, gen_for_vec: bool) -> proc_macro2::TokenStream {
     match &container.data {
         Data::Enum(variants) => serialize_enum(container, variants),
-        Data::Struct(StructStyle::Struct, fields) => serialize_struct(container, fields),
+        Data::Struct(StructStyle::Struct, fields) => {
+            serialize_struct(container, fields, gen_for_vec)
+        }
         _ => unimplemented!(),
     }
 }
@@ -64,7 +84,11 @@ fn serialize_enum(_container: &Container, variants: &[Variant]) -> proc_macro2::
     }
 }
 
-fn serialize_struct(container: &Container, fields: &[Field]) -> proc_macro2::TokenStream {
+fn serialize_struct(
+    container: &Container,
+    fields: &[Field],
+    gen_for_vec: bool,
+) -> proc_macro2::TokenStream {
     let name = &container.ident;
 
     let build_fields = fields.iter().map(|f| {
@@ -97,15 +121,28 @@ fn serialize_struct(container: &Container, fields: &[Field]) -> proc_macro2::Tok
         }
     });
 
-    quote! {
-        let mut tokens = match self {
-            ton_abi::TokenValue::Tuple(tokens) => tokens.into_iter(),
-            _ => return Err(ton_token_parser::ParserError::InvalidAbi),
-        };
+    match gen_for_vec {
+        true => {
+            quote! {
+                let mut tokens = self.into_iter();
 
-        std::result::Result::Ok(#name {
-            #(#build_fields,)*
-        })
+                std::result::Result::Ok(#name {
+                    #(#build_fields,)*
+                })
+            }
+        }
+        false => {
+            quote! {
+                let mut tokens = match self {
+                    ton_abi::TokenValue::Tuple(tokens) => tokens.into_iter(),
+                    _ => return Err(ton_token_parser::ParserError::InvalidAbi),
+                };
+
+                std::result::Result::Ok(#name {
+                    #(#build_fields,)*
+                })
+            }
+        }
     }
 }
 
