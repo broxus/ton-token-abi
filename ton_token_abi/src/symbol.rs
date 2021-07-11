@@ -11,7 +11,10 @@ define_symbols! {
     // main macro name
     ABI => "abi",
 
-    // attributes
+    // container attributes
+    PLAIN => "plain",
+
+    // field attributes
     NAME => "name",
     PARSE_TYPE => "parse_type",
 }

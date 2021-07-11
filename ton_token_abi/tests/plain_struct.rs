@@ -10,6 +10,7 @@ use ton_token_parser::ParseToken;
 use ton_types::UInt256;
 
 #[derive(TokenAbi, Debug)]
+#[abi(plain)]
 pub struct InternalTransfer {
     #[abi(uint128)]
     pub tokens: u128,
