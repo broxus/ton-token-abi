@@ -26,16 +26,20 @@ pub fn impl_derive(input: syn::DeriveInput) -> Result<proc_macro2::TokenStream, 
 
             }
         }
+        Data::Struct(_, _) if container.attrs.plain => {
+            quote! {
+                impl ton_token_parser::ParseToken<#ident> for Vec<ton_abi::Token> {
+                    fn try_parse(self) -> ton_token_parser::ContractResult<#ident> {
+                        #vec_body
+                    }
+                }
+            }
+        }
         Data::Struct(_, _) => {
             quote! {
                 impl ton_token_parser::ParseToken<#ident> for ton_abi::TokenValue {
                     fn try_parse(self) -> ton_token_parser::ContractResult<#ident> {
                         #default_body
-                    }
-                }
-                impl ton_token_parser::ParseToken<#ident> for Vec<ton_abi::Token> {
-                    fn try_parse(self) -> ton_token_parser::ContractResult<#ident> {
-                        #vec_body
                     }
                 }
             }

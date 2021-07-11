@@ -7,11 +7,13 @@ use crate::parsing_context::*;
 use crate::symbol::*;
 
 pub struct Container {
+    pub plain: bool,
     pub parse_type: Option<String>,
 }
 
 impl Container {
     pub fn from_ast(cx: &ParsingContext, input: &syn::DeriveInput) -> Self {
+        let mut plain = BoolAttr::none(cx, PLAIN);
         let mut parse_type = Attr::none(cx, PARSE_TYPE);
 
         for (from, meta_item) in input
@@ -21,6 +23,7 @@ impl Container {
             .flat_map(|item| item.into_iter())
         {
             match (from, &meta_item) {
+                (AttrFrom::Abi, Meta(Path(word))) if word == PLAIN => plain.set_true(word),
                 (AttrFrom::Abi, Lit(lit)) => {
                     if let Ok(s) = get_lit_str_simple(lit) {
                         parse_type.set(lit, s.value());
@@ -31,6 +34,7 @@ impl Container {
         }
 
         Self {
+            plain: plain.get(),
             parse_type: parse_type.get(),
         }
     }
@@ -208,6 +212,22 @@ impl<'c, T> Attr<'c, T> {
             Some(value) => Some((self.tokens, value)),
             None => None,
         }
+    }
+}
+
+struct BoolAttr<'c>(Attr<'c, ()>);
+
+impl<'c> BoolAttr<'c> {
+    fn none(cx: &'c ParsingContext, name: Symbol) -> Self {
+        BoolAttr(Attr::none(cx, name))
+    }
+
+    fn set_true<A: ToTokens>(&mut self, object: A) {
+        self.0.set(object, ());
+    }
+
+    fn get(&self) -> bool {
+        self.0.value.is_some()
     }
 }
 
