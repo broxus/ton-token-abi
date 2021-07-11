@@ -12,7 +12,7 @@ use ton_types::UInt256;
 #[derive(TokenAbi, Debug)]
 #[abi(plain)]
 pub struct InternalTransfer {
-    #[abi(uint128)]
+    #[abi]
     pub tokens: u128,
     #[abi(uint256)]
     pub sender_public_key: UInt256,

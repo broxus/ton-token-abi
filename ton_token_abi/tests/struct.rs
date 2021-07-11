@@ -7,35 +7,35 @@ use ton_types::UInt256;
 
 #[derive(TokenAbi)]
 struct PendingTransaction {
-    #[abi("uint64")]
+    #[abi(uint64)]
     id: u64,
-    #[abi("uint32", name = "confirmationsMask")]
+    #[abi(uint32, name = "confirmationsMask")]
     confirmations_mask: u32,
-    #[abi("uint8", name = "signsRequired")]
+    #[abi(uint8, name = "signsRequired")]
     signs_required: u8,
-    #[abi("uint8", name = "signsReceived")]
+    #[abi(uint8, name = "signsReceived")]
     signs_received: u8,
-    #[abi("uint256", name = "creator")]
+    #[abi(uint256, name = "creator")]
     creator: UInt256,
-    #[abi("uint8")]
+    #[abi(uint8)]
     index: u8,
     //dest: MsgAddressInt,
     #[abi(name = "value")]
     _value: BigUint,
-    #[abi("uint16", name = "sendFlags")]
+    #[abi(uint16, name = "sendFlags")]
     send_flags: u16,
     //payload: ton_types::Cell,
-    #[abi("bool")]
+    #[abi(bool)]
     bounce: bool,
-    #[abi()]
+    #[abi]
     complex: Complex,
 }
 
 #[derive(TokenAbi)]
 struct Complex {
-    #[abi()]
+    #[abi]
     number: u8,
-    #[abi()]
+    #[abi]
     flag: bool,
     #[abi(name = "publicKey")]
     public_key: Vec<u8>,

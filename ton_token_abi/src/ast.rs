@@ -33,12 +33,12 @@ pub struct Field<'a> {
 
 impl<'a> Container<'a> {
     pub fn from_ast(cx: &ParsingContext, input: &'a syn::DeriveInput) -> Option<Container<'a>> {
-        let attrs = attr::Container::from_ast(cx, input);
+        let attrs = attr::Container::from_ast(cx, input)?;
 
         let data = match &input.data {
             syn::Data::Enum(data) => Data::Enum(enum_from_ast(cx, &data.variants)?),
             syn::Data::Struct(data) => {
-                let (style, fields) = struct_from_ast(cx, &data.fields);
+                let (style, fields) = struct_from_ast(cx, &data.fields)?;
                 Data::Struct(style, fields)
             }
             syn::Data::Union(_) => {
@@ -90,53 +90,61 @@ fn enum_from_ast<'a>(
         return None;
     }
 
-    Some(
-        variants
-            .iter()
-            .map(|variant| {
-                let (style, fields) = struct_from_ast(cx, &variant.fields);
-                Variant {
-                    ident: variant.ident.clone(),
-                    style,
-                    fields,
-                    original: variant,
-                }
+    let result: Vec<Variant> = variants
+        .iter()
+        .flat_map(|variant| {
+            let (style, fields) = struct_from_ast(cx, &variant.fields)?;
+            Some(Variant {
+                ident: variant.ident.clone(),
+                style,
+                fields,
+                original: variant,
             })
-            .collect(),
-    )
+        })
+        .collect();
+
+    (result.len() == variants.len()).then(|| result)
 }
 
 fn struct_from_ast<'a>(
     cx: &ParsingContext,
     fields: &'a syn::Fields,
-) -> (StructStyle, Vec<Field<'a>>) {
+) -> Option<(StructStyle, Vec<Field<'a>>)> {
     match fields {
-        syn::Fields::Named(fields) => (StructStyle::Struct, fields_from_ast(cx, &fields.named)),
-        syn::Fields::Unnamed(fields) if fields.unnamed.len() == 1 => {
-            (StructStyle::NewType, fields_from_ast(cx, &fields.unnamed))
+        syn::Fields::Named(fields) => {
+            Some((StructStyle::Struct, fields_from_ast(cx, &fields.named)?))
         }
-        syn::Fields::Unnamed(fields) => (StructStyle::Tuple, fields_from_ast(cx, &fields.unnamed)),
-        syn::Fields::Unit => (StructStyle::Unit, Vec::new()),
+        syn::Fields::Unnamed(fields) if fields.unnamed.len() == 1 => {
+            Some((StructStyle::NewType, fields_from_ast(cx, &fields.unnamed)?))
+        }
+        syn::Fields::Unnamed(fields) => {
+            Some((StructStyle::Tuple, fields_from_ast(cx, &fields.unnamed)?))
+        }
+        syn::Fields::Unit => Some((StructStyle::Unit, Vec::new())),
     }
 }
 
 fn fields_from_ast<'a>(
     cx: &ParsingContext,
     fields: &'a Punctuated<syn::Field, syn::Token![,]>,
-) -> Vec<Field<'a>> {
-    fields
+) -> Option<Vec<Field<'a>>> {
+    let result: Vec<Field> = fields
         .iter()
         .enumerate()
-        .map(|(i, field)| Field {
-            member: match &field.ident {
-                Some(ident) => syn::Member::Named(ident.clone()),
-                None => syn::Member::Unnamed(i.into()),
-            },
-            attrs: attr::Field::from_ast(cx, i, field),
-            ty: &field.ty,
-            original: field,
+        .flat_map(|(i, field)| {
+            Some(Field {
+                member: match &field.ident {
+                    Some(ident) => syn::Member::Named(ident.clone()),
+                    None => syn::Member::Unnamed(i.into()),
+                },
+                attrs: attr::Field::from_ast(cx, i, field)?,
+                ty: &field.ty,
+                original: field,
+            })
         })
-        .collect()
+        .collect();
+
+    (result.len() == fields.len()).then(|| result)
 }
 
 #[derive(Debug, Clone, Copy)]

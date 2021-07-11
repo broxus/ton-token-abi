@@ -6,17 +6,17 @@ use ton_types::UInt256;
 
 #[derive(TokenAbi)]
 struct TestSt {
-    #[abi("uint8")]
+    #[abi(uint8)]
     field_1: u8,
-    #[abi("uint16")]
+    #[abi(uint16)]
     field_2: u16,
-    #[abi("uint32")]
+    #[abi(uint32)]
     field_3: u32,
-    #[abi("uint64")]
+    #[abi(uint64)]
     field_4: u64,
-    #[abi("uint256")]
+    #[abi(uint256)]
     field_5: UInt256,
-    #[abi("bool")]
+    #[abi(bool)]
     field_6: bool,
 }
 

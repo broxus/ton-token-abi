@@ -11,7 +11,7 @@ pub struct Container {
 }
 
 impl Container {
-    pub fn from_ast(cx: &ParsingContext, input: &syn::DeriveInput) -> Self {
+    pub fn from_ast(cx: &ParsingContext, input: &syn::DeriveInput) -> Option<Self> {
         let mut plain = BoolAttr::none(cx, PLAIN);
 
         for (from, meta_item) in input
@@ -22,11 +22,14 @@ impl Container {
         {
             match (from, &meta_item) {
                 (AttrFrom::Abi, Meta(Path(word))) if word == PLAIN => plain.set_true(word),
-                (AttrFrom::Abi, _) => {}
+                (AttrFrom::Abi, token) => {
+                    cx.error_spanned_by(token, "unexpected token");
+                    return None;
+                }
             }
         }
 
-        Self { plain: plain.get() }
+        Some(Self { plain: plain.get() })
     }
 }
 
@@ -36,7 +39,7 @@ pub struct Field {
 }
 
 impl Field {
-    pub fn from_ast(cx: &ParsingContext, _index: usize, input: &syn::Field) -> Self {
+    pub fn from_ast(cx: &ParsingContext, _index: usize, input: &syn::Field) -> Option<Self> {
         let mut name = Attr::none(cx, NAME);
         let mut parse_type = Attr::none(cx, PARSE_TYPE);
 
@@ -52,27 +55,31 @@ impl Field {
                         name.set(&m.path, s.value());
                     }
                 }
-                (AttrFrom::Abi, Lit(lit)) => {
-                    if let Ok(s) = get_lit_str_simple(lit) {
-                        let pt = ParseType::from(s.value().as_str());
+                (AttrFrom::Abi, Meta(Path(word))) => {
+                    if let Some(word) = word.get_ident() {
+                        let pt = ParseType::from(&word.to_string());
                         if pt != ParseType::NONE {
-                            parse_type.set(lit, pt);
+                            parse_type.set(word, pt);
                         } else {
-                            cx.error_spanned_by(lit, "unknown parse type")
+                            cx.error_spanned_by(word, "unknown parse type")
                         }
                     }
                 }
-                (AttrFrom::Abi, _) => {}
+                (AttrFrom::Abi, token) => {
+                    cx.error_spanned_by(token, "unexpected token");
+                    return None;
+                }
             }
         }
 
-        Self {
+        Some(Self {
             name: name.get(),
             parse_type: parse_type.get(),
-        }
+        })
     }
 }
 
+#[allow(dead_code)]
 fn get_lit_str_simple(lit: &syn::Lit) -> Result<&syn::LitStr, ()> {
     if let syn::Lit::Str(lit) = lit {
         Ok(lit)
@@ -125,6 +132,7 @@ fn get_meta_items(
             .into_iter()
             .map(|meta| (attr_from, meta))
             .collect()),
+        Ok(Path(_)) => Ok(Vec::new()),
         Ok(other) => {
             cx.error_spanned_by(other, format!("expected #[{}(...)]", attr_from));
             Err(())
@@ -229,6 +237,7 @@ pub enum ParseType {
     UINT64,
     UINT128,
     UINT256,
+    ADDRESS,
     BOOL,
     NONE,
 }
@@ -242,6 +251,7 @@ impl ParseType {
             "uint64" => ParseType::UINT64,
             "uint128" => ParseType::UINT128,
             "uint256" => ParseType::UINT256,
+            "address" => ParseType::ADDRESS,
             "bool" => ParseType::BOOL,
             _ => ParseType::NONE,
         }
