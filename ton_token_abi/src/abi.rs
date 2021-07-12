@@ -172,63 +172,115 @@ fn try_parse_struct(parse_type: &Option<ParseType>) -> proc_macro2::TokenStream 
 
 fn get_handler_struct(parse_type: &ParseType) -> proc_macro2::TokenStream {
     match parse_type {
-        ParseType::UINT8 => {
-            quote! {
-                ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size:8 }) => {
-                    value.to_u8().ok_or(ton_token_parser::ParserError::InvalidAbi)?
-                },
-            }
-        }
-        ParseType::UINT16 => {
-            quote! {
-                ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: 16 }) => {
-                    value.to_u16().ok_or(ton_token_parser::ParserError::InvalidAbi)?
-                },
-            }
-        }
-        ParseType::UINT32 => {
-            quote! {
-                ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: 32 }) => {
-                    value.to_u32().ok_or(ton_token_parser::ParserError::InvalidAbi)?
-                },
-            }
-        }
-        ParseType::UINT64 => {
-            quote! {
-                ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: 64 }) => {
-                    value.to_u64().ok_or(ton_token_parser::ParserError::InvalidAbi)?
-                },
-            }
-        }
-        ParseType::UINT128 => {
-            quote! {
-                ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: 128 }) => {
-                    value.to_bytes_be().into()
-                },
-            }
-        }
-        ParseType::UINT256 => {
-            quote! {
-                ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: 256 }) => {
-                    let mut result = [0; 32];
-                    let data = value.to_bytes_be();
+        ParseType::INT(size) => {
+            if *size <= 8 {
+                quote! {
+                    ton_abi::TokenValue::Int(ton_abi::Int { number: value, size: #size }) => {
+                        value.to_i8().ok_or(ton_token_parser::ParserError::InvalidAbi)?
+                    },
+                }
+            } else if *size > 8 && *size <= 16 {
+                quote! {
+                    ton_abi::TokenValue::Int(ton_abi::Int { number: value, size: #size }) => {
+                        value.to_i16().ok_or(ton_token_parser::ParserError::InvalidAbi)?
+                    },
+                }
+            } else if *size > 16 && *size <= 32 {
+                quote! {
+                    ton_abi::TokenValue::Int(ton_abi::Int { number: value, size: #size }) => {
+                        value.to_i32().ok_or(ton_token_parser::ParserError::InvalidAbi)?
+                    },
+                }
+            } else if *size > 32 && *size <= 64 {
+                quote! {
+                    ton_abi::TokenValue::Int(ton_abi::Int { number: value, size: #size }) => {
+                        value.to_i64().ok_or(ton_token_parser::ParserError::InvalidAbi)?
+                    },
+                }
+            } else if *size > 64 && *size <= 128 {
+                quote! {
+                    ton_abi::TokenValue::Int(ton_abi::Int { number: value, size: #size }) => {
+                        value.to_bytes_be().into()
+                    },
+                }
+            } else if *size > 128 && *size <= 256 {
+                quote! {
+                    ton_abi::TokenValue::Int(ton_abi::Int { number: value, size: #size }) => {
+                        let mut result = [0; 32];
+                        let data = value.to_bytes_be();
 
-                    let len = std::cmp::min(data.len(), 32);
-                    let offset = 32 - len;
-                    (0..len).for_each(|i| result[i + offset] = data[i]);
+                        let len = std::cmp::min(data.len(), 32);
+                        let offset = 32 - len;
+                        (0..len).for_each(|i| result[i + offset] = data[i]);
 
-                    result.into()
-                },
+                        result.into()
+                    },
+                }
+            } else {
+                unreachable!()
+            }
+        }
+        ParseType::UINT(size) => {
+            if *size <= 8 {
+                quote! {
+                    ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: #size }) => {
+                        value.to_u8().ok_or(ton_token_parser::ParserError::InvalidAbi)?
+                    },
+                }
+            } else if *size > 8 && *size <= 16 {
+                quote! {
+                    ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: #size }) => {
+                        value.to_u16().ok_or(ton_token_parser::ParserError::InvalidAbi)?
+                    },
+                }
+            } else if *size > 16 && *size <= 32 {
+                quote! {
+                    ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: #size }) => {
+                        value.to_u32().ok_or(ton_token_parser::ParserError::InvalidAbi)?
+                    },
+                }
+            } else if *size > 32 && *size <= 64 {
+                quote! {
+                    ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: #size }) => {
+                        value.to_u64().ok_or(ton_token_parser::ParserError::InvalidAbi)?
+                    },
+                }
+            } else if *size > 64 && *size <= 128 {
+                quote! {
+                    ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: #size }) => {
+                        value.to_bytes_be().into()
+                    },
+                }
+            } else if *size > 128 && *size <= 256 {
+                quote! {
+                    ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: #size }) => {
+                        let mut result = [0; 32];
+                        let data = value.to_bytes_be();
+
+                        let len = std::cmp::min(data.len(), 32);
+                        let offset = 32 - len;
+                        (0..len).for_each(|i| result[i + offset] = data[i]);
+
+                        result.into()
+                    },
+                }
+            } else {
+                unreachable!()
             }
         }
         ParseType::ADDRESS => {
             quote! {
-                TokenValue::Address(ton_block::MsgAddress::AddrStd(addr)) => {
+                ton_abi::TokenValue::Address(ton_block::MsgAddress::AddrStd(addr)) => {
                     ton_block::MsgAddressInt::AddrStd(addr)
                 },
-                TokenValue::Address(ton_block::MsgAddress::AddrVar(addr)) => {
+                ton_abi::TokenValue::Address(ton_block::MsgAddress::AddrVar(addr)) => {
                     ton_block::MsgAddressInt::AddrVar(addr)
                 },
+            }
+        }
+        ParseType::CELL => {
+            quote! {
+                ton_abi::TokenValue::Cell(cell) => cell,
             }
         }
         ParseType::BOOL => {

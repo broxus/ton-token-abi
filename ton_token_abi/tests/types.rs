@@ -1,69 +1,94 @@
+use num_bigint::BigUint;
+use num_traits::FromPrimitive;
 use num_traits::ToPrimitive;
-use ton_abi::Uint;
+use ton_abi::{Int, Token, TokenValue, Uint};
 use ton_token_abi::TokenAbi;
-use ton_token_parser::{ParseToken, ParserError};
+use ton_token_parser::ParseToken;
 use ton_types::UInt256;
 
 #[derive(TokenAbi)]
-struct TestSt {
+#[abi(plain)]
+struct Data {
+    #[abi(int8)]
+    data_i8: i8,
+    #[abi(uint5)]
+    data_u5: u8,
     #[abi(uint8)]
-    field_1: u8,
+    data_u8: u8,
+    #[abi(uint10)]
+    data_u10: u16,
     #[abi(uint16)]
-    field_2: u16,
+    data_u16: u16,
+    #[abi(uint27)]
+    data_u27: u32,
     #[abi(uint32)]
-    field_3: u32,
+    data_u32: u32,
+    #[abi(uint45)]
+    data_u45: u64,
     #[abi(uint64)]
-    field_4: u64,
+    data_u64: u64,
+    #[abi(uint160)]
+    data_u160: UInt256,
     #[abi(uint256)]
-    field_5: UInt256,
+    data_u256: UInt256,
     #[abi(bool)]
-    field_6: bool,
+    data_bool: bool,
 }
 
-fn main() {
-    let value_1: u8 = 1;
-    let value_2: u16 = 2;
-    let value_3: u32 = 3;
-    let value_4: u64 = 4;
-    let value_5: UInt256 = UInt256::MAX;
-    let value_6 = true;
-
-    let field_1 = ton_abi::Token::new(
-        "field_1",
-        ton_abi::TokenValue::Uint(Uint::new(value_1 as u128, 8)),
+fn test() -> Data {
+    let data_i8 = Token::new("data_i8", TokenValue::Int(Int::new(8, 8)));
+    let data_u5 = Token::new("data_u5", TokenValue::Uint(Uint::new(5, 5)));
+    let data_u8 = Token::new("data_u8", TokenValue::Uint(Uint::new(8, 8)));
+    let data_u10 = Token::new("data_u10", TokenValue::Uint(Uint::new(10, 10)));
+    let data_u16 = Token::new("data_u16", TokenValue::Uint(Uint::new(16, 16)));
+    let data_u27 = Token::new("data_u27", TokenValue::Uint(Uint::new(27, 27)));
+    let data_u32 = Token::new("data_u32", TokenValue::Uint(Uint::new(32, 32)));
+    let data_u45 = Token::new("data_u45", TokenValue::Uint(Uint::new(45, 45)));
+    let data_u64 = Token::new("data_u64", TokenValue::Uint(Uint::new(64, 64)));
+    let data_u160 = Token::new(
+        "data_u160",
+        TokenValue::Uint(Uint {
+            number: BigUint::from_u64(160).unwrap(),
+            size: 160,
+        }),
     );
-    let field_2 = ton_abi::Token::new(
-        "field_2",
-        ton_abi::TokenValue::Uint(Uint::new(value_2 as u128, 16)),
-    );
-    let field_3 = ton_abi::Token::new(
-        "field_3",
-        ton_abi::TokenValue::Uint(Uint::new(value_3 as u128, 32)),
-    );
-    let field_4 = ton_abi::Token::new(
-        "field_4",
-        ton_abi::TokenValue::Uint(Uint::new(value_4 as u128, 64)),
-    );
-    let field_5 = ton_abi::Token::new(
-        "field_5",
-        ton_abi::TokenValue::Uint(ton_abi::Uint {
-            number: num_bigint::BigUint::from_bytes_be(value_5.as_slice()),
+    let data_u256 = Token::new(
+        "data_u256",
+        TokenValue::Uint(Uint {
+            number: BigUint::from_u64(256).unwrap(),
             size: 256,
         }),
     );
-    let field_6 = ton_abi::Token::new("field_6", ton_abi::TokenValue::Bool(value_6));
-    let tokens = vec![field_1, field_2, field_3, field_4, field_5, field_6];
+    let data_bool = Token::new("data_bool", TokenValue::Bool(true));
 
-    let tuple = ton_abi::Token::new("tuple", ton_abi::TokenValue::Tuple(tokens));
+    let tokens = vec![
+        data_i8, data_u5, data_u8, data_u10, data_u16, data_u27, data_u32, data_u45, data_u64,
+        data_u160, data_u256, data_bool,
+    ];
+    let parsed: Data = tokens.try_parse().unwrap();
 
-    let res: Result<TestSt, ParserError> = tuple.try_parse();
-    assert!(res.is_ok());
+    parsed
+}
 
-    let test = res.unwrap();
-    assert_eq!(value_1, test.field_1);
-    assert_eq!(value_2, test.field_2);
-    assert_eq!(value_3, test.field_3);
-    assert_eq!(value_4, test.field_4);
-    assert_eq!(value_5, test.field_5);
-    assert_eq!(value_6, test.field_6);
+fn main() {
+    let data = test();
+
+    assert_eq!(data.data_i8, 8);
+    assert_eq!(data.data_u5, 5);
+    assert_eq!(data.data_u8, 8);
+    assert_eq!(data.data_u10, 10);
+    assert_eq!(data.data_u16, 16);
+    assert_eq!(data.data_u27, 27);
+    assert_eq!(data.data_u32, 32);
+    assert_eq!(data.data_u45, 45);
+    assert_eq!(data.data_u64, 64);
+    assert_eq!(
+        data.data_u160.to_hex_string(),
+        "00000000000000000000000000000000000000000000000000000000000000a0"
+    );
+    assert_eq!(
+        data.data_u256.to_hex_string(),
+        "0000000000000000000000000000000000000000000000000000000000000100"
+    );
+    assert_eq!(data.data_bool, true);
 }

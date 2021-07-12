@@ -231,29 +231,48 @@ impl<'c> BoolAttr<'c> {
 
 #[derive(PartialEq)]
 pub enum ParseType {
-    UINT8,
-    UINT16,
-    UINT32,
-    UINT64,
-    UINT128,
-    UINT256,
-    ADDRESS,
+    INT(usize),
+    UINT(usize),
     BOOL,
+    CELL,
+    ADDRESS,
     NONE,
 }
 
 impl ParseType {
     fn from(input: &str) -> ParseType {
-        match input {
-            "uint8" => ParseType::UINT8,
-            "uint16" => ParseType::UINT16,
-            "uint32" => ParseType::UINT32,
-            "uint64" => ParseType::UINT64,
-            "uint128" => ParseType::UINT128,
-            "uint256" => ParseType::UINT256,
-            "address" => ParseType::ADDRESS,
-            "bool" => ParseType::BOOL,
-            _ => ParseType::NONE,
-        }
+        return if input == "bool" {
+            ParseType::BOOL
+        } else if input == "cell" {
+            ParseType::CELL
+        } else if input == "address" {
+            ParseType::ADDRESS
+        } else if input.starts_with("int") {
+            let size = match input.trim_start_matches("int").parse::<usize>() {
+                Ok(size) => {
+                    if size <= 256 {
+                        size
+                    } else {
+                        return ParseType::NONE;
+                    }
+                }
+                Err(_) => return ParseType::NONE,
+            };
+            ParseType::INT(size)
+        } else if input.starts_with("uint") {
+            let size = match input.trim_start_matches("uint").parse::<usize>() {
+                Ok(size) => {
+                    if size <= 256 {
+                        size
+                    } else {
+                        return ParseType::NONE;
+                    }
+                }
+                Err(_) => return ParseType::NONE,
+            };
+            ParseType::UINT(size)
+        } else {
+            ParseType::NONE
+        };
     }
 }

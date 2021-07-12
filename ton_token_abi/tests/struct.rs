@@ -1,6 +1,11 @@
+use std::str::FromStr;
+
 use num_bigint::BigUint;
+use num_traits::FromPrimitive;
 use num_traits::ToPrimitive;
-use ton_abi::Uint;
+use ton_abi::TokenValue;
+use ton_abi::{Token, Uint};
+use ton_block::{MsgAddress, MsgAddressInt};
 use ton_token_abi::TokenAbi;
 use ton_token_parser::ParseToken;
 use ton_types::UInt256;
@@ -19,9 +24,9 @@ struct PendingTransaction {
     creator: UInt256,
     #[abi(uint8)]
     index: u8,
-    //dest: MsgAddressInt,
-    #[abi(name = "value")]
-    _value: BigUint,
+    #[abi(address)]
+    dest: MsgAddressInt,
+    //value: BigUint,
     #[abi(uint16, name = "sendFlags")]
     send_flags: u16,
     //payload: ton_types::Cell,
@@ -41,6 +46,66 @@ struct Complex {
     public_key: Vec<u8>,
 }
 
+fn test() -> PendingTransaction {
+    let number = Token::new("number", TokenValue::Uint(Uint::new(33, 8)));
+    let flag = Token::new("flag", TokenValue::Bool(true));
+    let public_key = Token::new(
+        "publicKey",
+        TokenValue::Bytes(
+            hex::decode("6775b6a6ba3711a1c9ac1a62cacf62890ad1df5fbe4308dd9a17405c75b57f2e")
+                .unwrap(),
+        ),
+    );
+    let complex = vec![number, flag, public_key];
+
+    let id = Token::new("id", TokenValue::Uint(Uint::new(10, 64)));
+    let confirmations_mask = Token::new("confirmationsMask", TokenValue::Uint(Uint::new(5, 32)));
+    let signs_required = Token::new("signsRequired", TokenValue::Uint(Uint::new(7, 8)));
+    let signs_received = Token::new("signsReceived", TokenValue::Uint(Uint::new(3, 8)));
+    let creator = Token::new(
+        "creator",
+        TokenValue::Uint(Uint {
+            number: BigUint::from_u64(12345).unwrap(),
+            size: 256,
+        }),
+    );
+    let index = Token::new("index", TokenValue::Uint(Uint::new(9, 8)));
+    let dest = Token::new(
+        "dest",
+        TokenValue::Address(MsgAddress::AddrStd(
+            match MsgAddressInt::from_str(
+                "0:18c99afffe13d3081370f77c10fc4d51bc54e52b8e181db6a0e8bb75456d91ff",
+            )
+            .unwrap()
+            {
+                MsgAddressInt::AddrStd(a) => a,
+                MsgAddressInt::AddrVar(_) => unreachable!(),
+            },
+        )),
+    );
+    let send_flags = Token::new("sendFlags", TokenValue::Uint(Uint::new(12, 16)));
+    let bounce = Token::new("bounce", TokenValue::Bool(false));
+    let complex = Token::new("complex", TokenValue::Tuple(complex));
+
+    let tokens = vec![
+        id,
+        confirmations_mask,
+        signs_required,
+        signs_received,
+        creator,
+        index,
+        dest,
+        send_flags,
+        bounce,
+        complex,
+    ];
+
+    let tuple = Token::new("tuple", TokenValue::Tuple(tokens));
+    let parsed: PendingTransaction = tuple.try_parse().unwrap();
+
+    parsed
+}
+
 fn vec_compare(va: &[u8], vb: &[u8]) -> bool {
     (va.len() == vb.len()) &&  // zip stops at the shortest
         va.iter()
@@ -49,96 +114,27 @@ fn vec_compare(va: &[u8], vb: &[u8]) -> bool {
 }
 
 fn main() {
-    let number_val: u8 = 33;
-    let flag_val = true;
-    let public_key_val =
-        hex::decode("6775b6a6ba3711a1c9ac1a62cacf62890ad1df5fbe4308dd9a17405c75b57f2e").unwrap();
+    let data = test();
 
-    let id_val: u64 = 10;
-    let confirmations_mask_val: u32 = 17;
-    let signs_required_val: u8 = 6;
-    let signs_received_val: u8 = 4;
-    let creator_val: UInt256 = UInt256::MAX;
-    let index_val: u8 = 2;
-    let send_flags_val: u16 = 12;
-    let bounce_val = false;
-
-    let number = ton_abi::Token::new(
-        "number",
-        ton_abi::TokenValue::Uint(Uint::new(number_val as u128, 8)),
+    assert_eq!(data.id, 10);
+    assert_eq!(data.confirmations_mask, 5);
+    assert_eq!(data.signs_required, 7);
+    assert_eq!(data.signs_received, 3);
+    assert_eq!(
+        data.creator.to_hex_string(),
+        "0000000000000000000000000000000000000000000000000000000000003039"
     );
-    let flag = ton_abi::Token::new("flag", ton_abi::TokenValue::Bool(flag_val));
-    let public_key = ton_abi::Token::new(
-        "publicKey",
-        ton_abi::TokenValue::Bytes(public_key_val.clone()),
+    assert_eq!(data.index, 9);
+    assert_eq!(
+        data.dest.to_string(),
+        "0:18c99afffe13d3081370f77c10fc4d51bc54e52b8e181db6a0e8bb75456d91ff"
     );
-    let complex = vec![number, flag, public_key];
-
-    let id = ton_abi::Token::new(
-        "id",
-        ton_abi::TokenValue::Uint(Uint::new(id_val as u128, 64)),
-    );
-    let confirmations_mask = ton_abi::Token::new(
-        "confirmationsMask",
-        ton_abi::TokenValue::Uint(Uint::new(confirmations_mask_val as u128, 32)),
-    );
-    let signs_required = ton_abi::Token::new(
-        "signsRequired",
-        ton_abi::TokenValue::Uint(Uint::new(signs_required_val as u128, 8)),
-    );
-    let signs_received = ton_abi::Token::new(
-        "signsReceived",
-        ton_abi::TokenValue::Uint(Uint::new(signs_received_val as u128, 8)),
-    );
-    let creator = ton_abi::Token::new(
-        "creator",
-        ton_abi::TokenValue::Uint(Uint {
-            number: num_bigint::BigUint::from_bytes_be(creator_val.as_slice()),
-            size: 256,
-        }),
-    );
-    let index = ton_abi::Token::new(
-        "index",
-        ton_abi::TokenValue::Uint(Uint::new(index_val as u128, 8)),
-    );
-    let value = ton_abi::Token::new(
-        "value",
-        ton_abi::TokenValue::Uint(Uint::new(123456789, 256)),
-    );
-    let send_flags = ton_abi::Token::new(
-        "sendFlags",
-        ton_abi::TokenValue::Uint(Uint::new(send_flags_val as u128, 16)),
-    );
-    let bounce = ton_abi::Token::new("bounce", ton_abi::TokenValue::Bool(bounce_val));
-    let complex = ton_abi::Token::new("complex", ton_abi::TokenValue::Tuple(complex));
-    let tokens = vec![
-        id,
-        confirmations_mask,
-        signs_required,
-        signs_received,
-        creator,
-        index,
-        value,
-        send_flags,
-        bounce,
-        complex,
-    ];
-
-    let tuple = ton_abi::Token::new("tuple", ton_abi::TokenValue::Tuple(tokens));
-    let data: PendingTransaction = match tuple.try_parse() {
-        Ok(data) => data,
-        Err(err) => panic!("Failed to parse token: {:?}", err),
-    };
-
-    assert_eq!(data.id, id_val);
-    assert_eq!(data.confirmations_mask, confirmations_mask_val);
-    assert_eq!(data.signs_required, signs_required_val);
-    assert_eq!(data.signs_received, signs_received_val);
-    assert_eq!(data.creator, creator_val);
-    assert_eq!(data.index, index_val);
-    assert_eq!(data.send_flags, send_flags_val);
-    assert_eq!(data.bounce, bounce_val);
-    assert_eq!(data.complex.number, number_val);
-    assert_eq!(data.complex.flag, flag_val);
-    assert!(vec_compare(&data.complex.public_key, &public_key_val));
+    assert_eq!(data.send_flags, 12);
+    assert_eq!(data.bounce, false);
+    assert_eq!(data.complex.number, 33);
+    assert!(vec_compare(
+        &data.complex.public_key,
+        &hex::decode("6775b6a6ba3711a1c9ac1a62cacf62890ad1df5fbe4308dd9a17405c75b57f2e").unwrap()
+    ));
+    assert_eq!(data.complex.flag, true);
 }
