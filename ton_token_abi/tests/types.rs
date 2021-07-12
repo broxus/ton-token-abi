@@ -27,6 +27,8 @@ struct Data {
     data_u45: u64,
     #[abi(uint64)]
     data_u64: u64,
+    #[abi(uint128)]
+    data_u128: u128,
     #[abi(uint160)]
     data_u160: UInt256,
     #[abi(uint256)]
@@ -45,6 +47,7 @@ fn test() -> Data {
     let data_u32 = Token::new("data_u32", TokenValue::Uint(Uint::new(32, 32)));
     let data_u45 = Token::new("data_u45", TokenValue::Uint(Uint::new(45, 45)));
     let data_u64 = Token::new("data_u64", TokenValue::Uint(Uint::new(64, 64)));
+    let data_u128 = Token::new("data_u128", TokenValue::Uint(Uint::new(128, 128)));
     let data_u160 = Token::new(
         "data_u160",
         TokenValue::Uint(Uint {
@@ -63,7 +66,7 @@ fn test() -> Data {
 
     let tokens = vec![
         data_i8, data_u5, data_u8, data_u10, data_u16, data_u27, data_u32, data_u45, data_u64,
-        data_u160, data_u256, data_bool,
+        data_u128, data_u160, data_u256, data_bool,
     ];
     let parsed: Data = tokens.try_parse().unwrap();
 
@@ -82,6 +85,7 @@ fn main() {
     assert_eq!(data.data_u32, 32);
     assert_eq!(data.data_u45, 45);
     assert_eq!(data.data_u64, 64);
+    assert_eq!(data.data_u128, 128);
     assert_eq!(
         data.data_u160.to_hex_string(),
         "00000000000000000000000000000000000000000000000000000000000000a0"

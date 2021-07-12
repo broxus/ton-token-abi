@@ -200,20 +200,7 @@ fn get_handler_struct(parse_type: &ParseType) -> proc_macro2::TokenStream {
             } else if *size > 64 && *size <= 128 {
                 quote! {
                     ton_abi::TokenValue::Int(ton_abi::Int { number: value, size: #size }) => {
-                        value.to_bytes_be().into()
-                    },
-                }
-            } else if *size > 128 && *size <= 256 {
-                quote! {
-                    ton_abi::TokenValue::Int(ton_abi::Int { number: value, size: #size }) => {
-                        let mut result = [0; 32];
-                        let data = value.to_bytes_be();
-
-                        let len = std::cmp::min(data.len(), 32);
-                        let offset = 32 - len;
-                        (0..len).for_each(|i| result[i + offset] = data[i]);
-
-                        result.into()
+                        value.to_i128().ok_or(ton_token_parser::ParserError::InvalidAbi)?
                     },
                 }
             } else {
@@ -248,7 +235,7 @@ fn get_handler_struct(parse_type: &ParseType) -> proc_macro2::TokenStream {
             } else if *size > 64 && *size <= 128 {
                 quote! {
                     ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: #size }) => {
-                        value.to_bytes_be().into()
+                        value.to_u128().ok_or(ton_token_parser::ParserError::InvalidAbi)?
                     },
                 }
             } else if *size > 128 && *size <= 256 {

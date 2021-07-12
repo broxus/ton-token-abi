@@ -250,7 +250,7 @@ impl ParseType {
         } else if input.starts_with("int") {
             let size = match input.trim_start_matches("int").parse::<usize>() {
                 Ok(size) => {
-                    if size <= 256 {
+                    if size <= 128 {
                         size
                     } else {
                         return ParseType::NONE;
