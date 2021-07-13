@@ -1,4 +1,4 @@
-use proc_macro2::TokenStream;
+use proc_macro2::{Group, Span, TokenStream, TokenTree};
 use quote::ToTokens;
 use syn::Meta::*;
 use syn::NestedMeta::*;
@@ -35,12 +35,14 @@ impl Container {
 
 pub struct Field {
     pub name: Option<String>,
+    pub parse_with: Option<syn::Expr>,
     pub parse_type: Option<ParseType>,
 }
 
 impl Field {
     pub fn from_ast(cx: &ParsingContext, _index: usize, input: &syn::Field) -> Option<Self> {
         let mut name = Attr::none(cx, NAME);
+        let mut parse_with = Attr::none(cx, PARSE_WITH);
         let mut parse_type = Attr::none(cx, PARSE_TYPE);
 
         for (from, meta_item) in input
@@ -65,6 +67,11 @@ impl Field {
                         }
                     }
                 }
+                (AttrFrom::Abi, Meta(NameValue(m))) if m.path == PARSE_WITH => {
+                    if let Ok(expr) = parse_lit_into_expr(cx, PARSE_WITH, &m.lit) {
+                        parse_with.set(&m.path, expr);
+                    }
+                }
                 (AttrFrom::Abi, token) => {
                     cx.error_spanned_by(token, "unexpected token");
                     return None;
@@ -74,9 +81,49 @@ impl Field {
 
         Some(Self {
             name: name.get(),
+            parse_with: parse_with.get(),
             parse_type: parse_type.get(),
         })
     }
+}
+
+fn parse_lit_into_expr(
+    cx: &ParsingContext,
+    attr_name: Symbol,
+    lit: &syn::Lit,
+) -> Result<syn::Expr, ()> {
+    let string = get_lit_str(cx, attr_name, lit)?;
+    parse_lit_str(string).map_err(|_| {
+        cx.error_spanned_by(lit, format!("failed to parse expr: {:?}", string.value()))
+    })
+}
+
+fn parse_lit_str<T>(s: &syn::LitStr) -> syn::parse::Result<T>
+where
+    T: syn::parse::Parse,
+{
+    let tokens = spanned_tokens(s)?;
+    syn::parse2(tokens)
+}
+
+fn spanned_tokens(s: &syn::LitStr) -> syn::parse::Result<TokenStream> {
+    let stream = syn::parse_str(&s.value())?;
+    Ok(respan_token_stream(stream, s.span()))
+}
+
+fn respan_token_stream(stream: TokenStream, span: Span) -> TokenStream {
+    stream
+        .into_iter()
+        .map(|token| respan_token_tree(token, span))
+        .collect()
+}
+
+fn respan_token_tree(mut token: TokenTree, span: Span) -> TokenTree {
+    if let TokenTree::Group(g) = &mut token {
+        *g = Group::new(g.delimiter(), respan_token_stream(g.stream(), span));
+    }
+    token.set_span(span);
+    token
 }
 
 #[allow(dead_code)]

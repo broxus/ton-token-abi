@@ -1,4 +1,4 @@
-use ton_abi::Uint;
+use ton_abi::{Token, TokenValue, Uint};
 use ton_token_abi::TokenAbi;
 use ton_token_parser::{ParseToken, ParserError};
 
@@ -15,10 +15,10 @@ struct InvalidSt {
 }
 
 fn main() {
-    let field = ton_abi::Token::new("validField", ton_abi::TokenValue::Uint(Uint::new(10, 32)));
+    let field = Token::new("validField", TokenValue::Uint(Uint::new(10, 32)));
     let tokens = vec![field];
 
-    let tuple = ton_abi::Token::new("tuple", ton_abi::TokenValue::Tuple(tokens));
+    let tuple = Token::new("tuple", TokenValue::Tuple(tokens));
 
     let invalid: Result<InvalidSt, ParserError> = tuple.clone().try_parse();
     assert!(invalid.is_err());

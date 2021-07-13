@@ -102,8 +102,9 @@ fn serialize_struct(
                 Some(v) => v.clone(),
                 None => name.to_string(),
             };
-            let parse_type = &f.attrs.parse_type;
-            let try_parse = try_parse_struct(parse_type);
+
+            let try_parse = try_parse_struct(&f.attrs.parse_with, &f.attrs.parse_type);
+
             quote! {
                 #name: {
                     let token = tokens.next();
@@ -146,27 +147,38 @@ fn serialize_struct(
     }
 }
 
-fn try_parse_struct(parse_type: &Option<ParseType>) -> proc_macro2::TokenStream {
-    match parse_type {
-        Some(parse_type) => {
-            let handler = get_handler_struct(parse_type);
-            quote! {
-                match token {
-                    Some(token) => {
-                        match token.value {
-                            #handler
-                            _ => return Err(ton_token_parser::ParserError::InvalidAbi),
-                        }
-                    },
-                    None => return Err(ton_token_parser::ParserError::InvalidAbi),
+fn try_parse_struct(
+    parse_with: &Option<syn::Expr>,
+    parse_type: &Option<ParseType>,
+) -> proc_macro2::TokenStream {
+    match parse_with {
+        Some(data) => quote! {
+            match token {
+                Some(token) => #data(&token)?,
+                None => return Err(ton_token_parser::ParserError::InvalidAbi),
+            }
+        },
+        None => match parse_type {
+            Some(parse_type) => {
+                let handler = get_handler_struct(parse_type);
+                quote! {
+                    match token {
+                        Some(token) => {
+                            match token.value {
+                                #handler
+                                _ => return Err(ton_token_parser::ParserError::InvalidAbi),
+                            }
+                        },
+                        None => return Err(ton_token_parser::ParserError::InvalidAbi),
+                    }
                 }
             }
-        }
-        None => {
-            quote! {
-                token.try_parse()?
+            None => {
+                quote! {
+                    token.try_parse()?
+                }
             }
-        }
+        },
     }
 }
 

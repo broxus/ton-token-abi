@@ -16,6 +16,7 @@ define_symbols! {
 
     // field attributes
     NAME => "name",
+    PARSE_WITH => "parse_with",
     PARSE_TYPE => "parse_type",
 }
 
