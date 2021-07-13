@@ -154,7 +154,7 @@ fn try_parse_struct(
     match parse_with {
         Some(data) => quote! {
             match token {
-                Some(token) => #data(&token)?,
+                Some(token) => #data(&token.value)?,
                 None => return Err(ton_token_parser::ParserError::InvalidAbi),
             }
         },

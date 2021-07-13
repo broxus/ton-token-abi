@@ -10,8 +10,8 @@ struct Data {
     value: u32,
 }
 
-fn external_parser(token: &Token) -> ContractResult<u32> {
-    match &token.value {
+fn external_parser(value: &TokenValue) -> ContractResult<u32> {
+    match value {
         ton_abi::TokenValue::Uint(ton_abi::Uint {
             number: value,
             size: 20,
