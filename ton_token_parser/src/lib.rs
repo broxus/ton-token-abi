@@ -4,67 +4,6 @@ use ton_abi::{Token, TokenValue};
 use ton_block::{MsgAddrStd, MsgAddressInt};
 use ton_types::{Cell, UInt256};
 
-pub trait TokenValueExt {
-    fn unnamed(self) -> Token;
-
-    fn named<T>(self, name: T) -> Token
-    where
-        T: ToString;
-}
-
-impl TokenValueExt for TokenValue {
-    fn unnamed(self) -> Token {
-        Token {
-            name: String::new(),
-            value: self,
-        }
-    }
-
-    fn named<T>(self, name: T) -> Token
-    where
-        T: ToString,
-    {
-        Token {
-            name: name.to_string(),
-            value: self,
-        }
-    }
-}
-
-pub trait IgnoreOutput: Sized {
-    fn ignore_output(self) -> Result<(), ParserError> {
-        Ok(())
-    }
-}
-
-impl IgnoreOutput for Vec<Token> {}
-
-pub trait IntoParser: Sized {
-    type Iter: Iterator<Item = Token>;
-
-    fn into_parser(self) -> ContractOutputParser<Self::Iter>;
-}
-
-impl IntoParser for Vec<Token> {
-    type Iter = std::vec::IntoIter<Token>;
-
-    fn into_parser(self) -> ContractOutputParser<Self::Iter> {
-        ContractOutputParser(self.into_iter())
-    }
-}
-
-#[derive(Debug)]
-pub struct ContractOutputParser<I>(I);
-
-impl<I: Iterator<Item = Token>> ContractOutputParser<I> {
-    pub fn parse_next<T>(&mut self) -> ContractResult<T>
-    where
-        TokenValue: ParseToken<T>,
-    {
-        self.0.next().try_parse()
-    }
-}
-
 pub trait ParseToken<T> {
     fn try_parse(self) -> ContractResult<T>;
 }
@@ -252,22 +191,6 @@ where
         }
     }
 }
-
-/*impl<T> ParseToken<Vec<T>> for TokenValue
-    where
-        T: StandaloneToken,
-        TokenValue: ParseToken<T>,
-{
-    fn try_parse(self) -> ContractResult<Vec<T>> {
-        match self {
-            TokenValue::Array(tokens) | TokenValue::FixedArray(tokens) => tokens,
-            _ => return Err(ParserError::InvalidAbi),
-        }
-            .into_iter()
-            .map(ParseToken::try_parse)
-            .collect()
-    }
-}*/
 
 impl<T> ParseToken<T> for Token
 where

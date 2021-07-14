@@ -35,15 +35,17 @@ impl Container {
 
 pub struct Field {
     pub name: Option<String>,
+    pub type_name: Option<TypeName>,
+    pub build_with: Option<syn::Expr>,
     pub parse_with: Option<syn::Expr>,
-    pub parse_type: Option<ParseType>,
 }
 
 impl Field {
     pub fn from_ast(cx: &ParsingContext, _index: usize, input: &syn::Field) -> Option<Self> {
         let mut name = Attr::none(cx, NAME);
+        let mut type_name = Attr::none(cx, TYPE_NAME);
+        let mut build_with = Attr::none(cx, BUILD_WITH);
         let mut parse_with = Attr::none(cx, PARSE_WITH);
-        let mut parse_type = Attr::none(cx, PARSE_TYPE);
 
         for (from, meta_item) in input
             .attrs
@@ -59,12 +61,17 @@ impl Field {
                 }
                 (AttrFrom::Abi, Meta(Path(word))) => {
                     if let Some(word) = word.get_ident() {
-                        let pt = ParseType::from(&word.to_string());
-                        if pt != ParseType::NONE {
-                            parse_type.set(word, pt);
+                        let pt = TypeName::from(&word.to_string());
+                        if pt != TypeName::None {
+                            type_name.set(word, pt);
                         } else {
                             cx.error_spanned_by(word, "unknown parse type")
                         }
+                    }
+                }
+                (AttrFrom::Abi, Meta(NameValue(m))) if m.path == BUILD_WITH => {
+                    if let Ok(expr) = parse_lit_into_expr(cx, BUILD_WITH, &m.lit) {
+                        build_with.set(&m.path, expr);
                     }
                 }
                 (AttrFrom::Abi, Meta(NameValue(m))) if m.path == PARSE_WITH => {
@@ -81,8 +88,9 @@ impl Field {
 
         Some(Self {
             name: name.get(),
+            type_name: type_name.get(),
+            build_with: build_with.get(),
             parse_with: parse_with.get(),
-            parse_type: parse_type.get(),
         })
     }
 }
@@ -277,49 +285,49 @@ impl<'c> BoolAttr<'c> {
 }
 
 #[derive(PartialEq)]
-pub enum ParseType {
-    INT(usize),
-    UINT(usize),
-    BOOL,
-    CELL,
-    ADDRESS,
-    NONE,
+pub enum TypeName {
+    Int(usize),
+    Uint(usize),
+    Bool,
+    Cell,
+    Address,
+    None,
 }
 
-impl ParseType {
-    fn from(input: &str) -> ParseType {
+impl TypeName {
+    fn from(input: &str) -> TypeName {
         return if input == "bool" {
-            ParseType::BOOL
+            TypeName::Bool
         } else if input == "cell" {
-            ParseType::CELL
+            TypeName::Cell
         } else if input == "address" {
-            ParseType::ADDRESS
+            TypeName::Address
         } else if input.starts_with("int") {
             let size = match input.trim_start_matches("int").parse::<usize>() {
                 Ok(size) => {
                     if size <= 128 {
                         size
                     } else {
-                        return ParseType::NONE;
+                        return TypeName::None;
                     }
                 }
-                Err(_) => return ParseType::NONE,
+                Err(_) => return TypeName::None,
             };
-            ParseType::INT(size)
+            TypeName::Int(size)
         } else if input.starts_with("uint") {
             let size = match input.trim_start_matches("uint").parse::<usize>() {
                 Ok(size) => {
                     if size <= 256 {
                         size
                     } else {
-                        return ParseType::NONE;
+                        return TypeName::None;
                     }
                 }
-                Err(_) => return ParseType::NONE,
+                Err(_) => return TypeName::None,
             };
-            ParseType::UINT(size)
+            TypeName::Uint(size)
         } else {
-            ParseType::NONE
+            TypeName::None
         };
     }
 }

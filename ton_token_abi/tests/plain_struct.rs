@@ -6,6 +6,7 @@ use ton_abi::TokenValue;
 use ton_abi::{Token, Uint};
 use ton_block::{MsgAddress, MsgAddressInt};
 use ton_token_abi::TokenAbi;
+use ton_token_builder::BuildToken;
 use ton_token_parser::ParseToken;
 use ton_types::UInt256;
 

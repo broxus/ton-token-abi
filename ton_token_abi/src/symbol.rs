@@ -16,8 +16,9 @@ define_symbols! {
 
     // field attributes
     NAME => "name",
+    TYPE_NAME => "type",
+    BUILD_WITH => "build_with",
     PARSE_WITH => "parse_with",
-    PARSE_TYPE => "parse_type",
 }
 
 #[derive(Copy, Clone)]

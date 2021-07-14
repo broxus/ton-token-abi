@@ -1,5 +1,6 @@
 use ton_abi::{Token, TokenValue, Uint};
 use ton_token_abi::TokenAbi;
+use ton_token_builder::BuildToken;
 use ton_token_parser::{ParseToken, ParserError};
 
 #[derive(TokenAbi)]

@@ -7,10 +7,11 @@ use ton_abi::TokenValue;
 use ton_abi::{Token, Uint};
 use ton_block::{MsgAddress, MsgAddressInt};
 use ton_token_abi::TokenAbi;
+use ton_token_builder::BuildToken;
 use ton_token_parser::ParseToken;
 use ton_types::UInt256;
 
-#[derive(TokenAbi)]
+#[derive(TokenAbi, Clone)]
 struct PendingTransaction {
     #[abi(uint64)]
     id: u64,
@@ -36,7 +37,7 @@ struct PendingTransaction {
     complex: Complex,
 }
 
-#[derive(TokenAbi)]
+#[derive(TokenAbi, Clone)]
 struct Complex {
     #[abi]
     number: u8,
@@ -46,7 +47,7 @@ struct Complex {
     public_key: Vec<u8>,
 }
 
-fn test() -> PendingTransaction {
+fn test_parser() -> PendingTransaction {
     let number = Token::new("number", TokenValue::Uint(Uint::new(33, 8)));
     let flag = Token::new("flag", TokenValue::Bool(true));
     let public_key = Token::new(
@@ -106,16 +107,15 @@ fn test() -> PendingTransaction {
     parsed
 }
 
-fn vec_compare(va: &[u8], vb: &[u8]) -> bool {
-    (va.len() == vb.len()) &&  // zip stops at the shortest
-        va.iter()
-            .zip(vb)
-            .all(|(a,b)| a == b)
+fn test_builder(data: PendingTransaction) -> PendingTransaction {
+    let token = data.token("tuple");
+    let parsed: PendingTransaction = token.try_parse().unwrap();
+
+    parsed
 }
 
 fn main() {
-    let data = test();
-
+    let data = test_parser();
     assert_eq!(data.id, 10);
     assert_eq!(data.confirmations_mask, 5);
     assert_eq!(data.signs_required, 7);
@@ -132,9 +132,23 @@ fn main() {
     assert_eq!(data.send_flags, 12);
     assert_eq!(data.bounce, false);
     assert_eq!(data.complex.number, 33);
-    assert!(vec_compare(
-        &data.complex.public_key,
-        &hex::decode("6775b6a6ba3711a1c9ac1a62cacf62890ad1df5fbe4308dd9a17405c75b57f2e").unwrap()
-    ));
+    assert_eq!(
+        data.complex.public_key,
+        hex::decode("6775b6a6ba3711a1c9ac1a62cacf62890ad1df5fbe4308dd9a17405c75b57f2e").unwrap()
+    );
     assert_eq!(data.complex.flag, true);
+
+    let new_data = test_builder(data.clone());
+    assert_eq!(data.id, new_data.id);
+    assert_eq!(data.confirmations_mask, new_data.confirmations_mask);
+    assert_eq!(data.signs_required, new_data.signs_required);
+    assert_eq!(data.signs_received, new_data.signs_received);
+    assert_eq!(data.creator, new_data.creator);
+    assert_eq!(data.index, new_data.index);
+    assert_eq!(data.dest, new_data.dest);
+    assert_eq!(data.send_flags, new_data.send_flags);
+    assert_eq!(data.bounce, new_data.bounce);
+    assert_eq!(data.complex.number, new_data.complex.number);
+    assert_eq!(data.complex.flag, new_data.complex.flag);
+    assert_eq!(data.complex.public_key, new_data.complex.public_key);
 }
