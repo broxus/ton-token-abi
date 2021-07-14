@@ -2,13 +2,13 @@ use num_bigint::BigUint;
 use ton_abi::Token;
 use ton_abi::TokenValue;
 use ton_token_abi::TokenAbi;
-use ton_token_builder::BuildTokens;
-use ton_token_parser::ParseToken;
+use ton_token_packer::PackTokens;
+use ton_token_unpacker::UnpackToken;
 
 #[derive(TokenAbi)]
 #[abi(plain)]
 struct Data {
-    #[abi(name = "myValue", build_with = "external_builder")]
+    #[abi(name = "value", pack_with = "external_builder")]
     value: u32,
 }
 
@@ -24,7 +24,7 @@ fn external_builder(value: u32, name: &str) -> Token {
 
 fn main() {
     let data = Data { value: 10 };
-    let tokens = data.build();
-    let new_data: Data = tokens.try_parse().unwrap();
+    let tokens = data.pack();
+    let new_data: Data = tokens.unpack().unwrap();
     assert_eq!(new_data.value, 10);
 }

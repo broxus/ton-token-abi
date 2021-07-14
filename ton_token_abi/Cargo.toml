@@ -21,8 +21,8 @@ ton_abi = { git = "https://github.com/tonlabs/ton-labs-abi" }
 ton_block = { git = "https://github.com/tonlabs/ton-labs-block.git" }
 ton_types = { git = "https://github.com/tonlabs/ton-labs-types.git" }
 
-ton_token_parser = { path = "../ton_token_parser" }
-ton_token_builder = { path = "../ton_token_builder" }
+ton_token_packer = { path = "../ton_token_packer" }
+ton_token_unpacker = { path = "../ton_token_unpacker" }
 
 [dependencies]
 proc-macro2 = "1.0.27"

@@ -1,7 +1,7 @@
 use ton_abi::{Token, TokenValue, Uint};
 use ton_token_abi::TokenAbi;
-use ton_token_builder::BuildToken;
-use ton_token_parser::{ParseToken, ParserError};
+use ton_token_packer::BuildToken;
+use ton_token_unpacker::{UnpackToken, UnpackerError};
 
 #[derive(TokenAbi)]
 struct ValidSt {
@@ -21,9 +21,9 @@ fn main() {
 
     let tuple = Token::new("tuple", TokenValue::Tuple(tokens));
 
-    let invalid: Result<InvalidSt, ParserError> = tuple.clone().try_parse();
+    let invalid: Result<InvalidSt, UnpackerError> = tuple.clone().unpack();
     assert!(invalid.is_err());
 
-    let valid: Result<ValidSt, ParserError> = tuple.try_parse();
+    let valid: Result<ValidSt, UnpackerError> = tuple.unpack();
     assert!(valid.is_ok());
 }

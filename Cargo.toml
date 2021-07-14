@@ -1,2 +1,2 @@
 [workspace]
-members = ["ton_token_abi", "ton_token_builder", "ton_token_parser"]
+members = ["ton_token_abi", "ton_token_packer", "ton_token_unpacker"]

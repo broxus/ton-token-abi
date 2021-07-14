@@ -17,8 +17,8 @@ define_symbols! {
     // field attributes
     NAME => "name",
     TYPE_NAME => "type",
-    BUILD_WITH => "build_with",
-    PARSE_WITH => "parse_with",
+    PACK_WITH => "pack_with",
+    UNPACK_WITH => "unpack_with",
 }
 
 #[derive(Copy, Clone)]

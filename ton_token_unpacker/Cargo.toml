@@ -1,5 +1,5 @@
 [package]
-name = "ton_token_builder"
+name = "ton_token_unpacker"
 version = "0.1.0"
 authors = ["Alexey Pashinov <pashinov93@gmail.com>"]
 edition = "2018"

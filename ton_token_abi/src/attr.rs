@@ -36,16 +36,16 @@ impl Container {
 pub struct Field {
     pub name: Option<String>,
     pub type_name: Option<TypeName>,
-    pub build_with: Option<syn::Expr>,
-    pub parse_with: Option<syn::Expr>,
+    pub pack_with: Option<syn::Expr>,
+    pub unpack_with: Option<syn::Expr>,
 }
 
 impl Field {
     pub fn from_ast(cx: &ParsingContext, _index: usize, input: &syn::Field) -> Option<Self> {
         let mut name = Attr::none(cx, NAME);
         let mut type_name = Attr::none(cx, TYPE_NAME);
-        let mut build_with = Attr::none(cx, BUILD_WITH);
-        let mut parse_with = Attr::none(cx, PARSE_WITH);
+        let mut pack_with = Attr::none(cx, PACK_WITH);
+        let mut unpack_with = Attr::none(cx, UNPACK_WITH);
 
         for (from, meta_item) in input
             .attrs
@@ -69,14 +69,14 @@ impl Field {
                         }
                     }
                 }
-                (AttrFrom::Abi, Meta(NameValue(m))) if m.path == BUILD_WITH => {
-                    if let Ok(expr) = parse_lit_into_expr(cx, BUILD_WITH, &m.lit) {
-                        build_with.set(&m.path, expr);
+                (AttrFrom::Abi, Meta(NameValue(m))) if m.path == PACK_WITH => {
+                    if let Ok(expr) = parse_lit_into_expr(cx, PACK_WITH, &m.lit) {
+                        pack_with.set(&m.path, expr);
                     }
                 }
-                (AttrFrom::Abi, Meta(NameValue(m))) if m.path == PARSE_WITH => {
-                    if let Ok(expr) = parse_lit_into_expr(cx, PARSE_WITH, &m.lit) {
-                        parse_with.set(&m.path, expr);
+                (AttrFrom::Abi, Meta(NameValue(m))) if m.path == UNPACK_WITH => {
+                    if let Ok(expr) = parse_lit_into_expr(cx, UNPACK_WITH, &m.lit) {
+                        unpack_with.set(&m.path, expr);
                     }
                 }
                 (AttrFrom::Abi, token) => {
@@ -89,8 +89,8 @@ impl Field {
         Some(Self {
             name: name.get(),
             type_name: type_name.get(),
-            build_with: build_with.get(),
-            parse_with: parse_with.get(),
+            pack_with: pack_with.get(),
+            unpack_with: unpack_with.get(),
         })
     }
 }

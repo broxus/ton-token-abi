@@ -3,7 +3,7 @@ use num_traits::FromPrimitive;
 use num_traits::ToPrimitive;
 use ton_abi::{Int, Token, TokenValue, Uint};
 use ton_token_abi::TokenAbi;
-use ton_token_parser::ParseToken;
+use ton_token_unpacker::UnpackToken;
 use ton_types::UInt256;
 
 #[derive(TokenAbi)]
@@ -68,7 +68,7 @@ fn test() -> Data {
         data_i8, data_u5, data_u8, data_u10, data_u16, data_u27, data_u32, data_u45, data_u64,
         data_u128, data_u160, data_u256, data_bool,
     ];
-    let parsed: Data = tokens.try_parse().unwrap();
+    let parsed: Data = tokens.unpack().unwrap();
 
     parsed
 }

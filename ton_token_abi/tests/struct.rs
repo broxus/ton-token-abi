@@ -7,8 +7,8 @@ use ton_abi::TokenValue;
 use ton_abi::{Token, Uint};
 use ton_block::{MsgAddress, MsgAddressInt};
 use ton_token_abi::TokenAbi;
-use ton_token_builder::BuildToken;
-use ton_token_parser::ParseToken;
+use ton_token_packer::BuildToken;
+use ton_token_unpacker::UnpackToken;
 use ton_types::UInt256;
 
 #[derive(TokenAbi, Clone)]
@@ -102,14 +102,14 @@ fn test_parser() -> PendingTransaction {
     ];
 
     let tuple = Token::new("tuple", TokenValue::Tuple(tokens));
-    let parsed: PendingTransaction = tuple.try_parse().unwrap();
+    let parsed: PendingTransaction = tuple.unpack().unwrap();
 
     parsed
 }
 
 fn test_builder(data: PendingTransaction) -> PendingTransaction {
     let token = data.token("tuple");
-    let parsed: PendingTransaction = token.try_parse().unwrap();
+    let parsed: PendingTransaction = token.unpack().unwrap();
 
     parsed
 }

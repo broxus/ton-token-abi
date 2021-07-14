@@ -3,8 +3,8 @@ use ton_abi::{Token, TokenValue};
 use ton_block::{MsgAddrStd, MsgAddress, MsgAddressInt};
 use ton_types::{Cell, UInt256};
 
-pub trait BuildTokens {
-    fn build(self) -> Vec<Token>;
+pub trait PackTokens {
+    fn pack(self) -> Vec<Token>;
 }
 
 pub trait BuildToken {

@@ -6,8 +6,8 @@ use ton_abi::TokenValue;
 use ton_abi::{Token, Uint};
 use ton_block::{MsgAddress, MsgAddressInt};
 use ton_token_abi::TokenAbi;
-use ton_token_builder::BuildToken;
-use ton_token_parser::ParseToken;
+use ton_token_packer::BuildToken;
+use ton_token_unpacker::UnpackToken;
 use ton_types::UInt256;
 
 #[derive(TokenAbi, Debug)]
@@ -43,7 +43,7 @@ fn test() -> InternalTransfer {
     let sender_address = TokenValue::Address(MsgAddress::AddrStd(address));
     let sender_address = Token::new("sender_address", sender_address);
     let tokens = vec![tokens, sender_public_key, sender_address];
-    let parsed: InternalTransfer = tokens.try_parse().unwrap();
+    let parsed: InternalTransfer = tokens.unpack().unwrap();
     parsed
 }
 
