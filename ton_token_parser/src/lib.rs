@@ -1,3 +1,4 @@
+pub use num_bigint as bigint;
 use num_bigint::{BigInt, BigUint};
 use num_traits::ToPrimitive;
 use ton_abi::{Token, TokenValue};
