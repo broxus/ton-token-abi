@@ -4,10 +4,9 @@ mod attr;
 mod parsing_context;
 mod symbol;
 
+use self::abi::*;
 use quote::quote;
 use syn::parse_macro_input;
-
-use self::abi::*;
 
 #[proc_macro_derive(TokenAbi, attributes(abi))]
 pub fn derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {

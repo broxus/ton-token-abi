@@ -266,7 +266,7 @@ fn get_handler(type_name: &TypeName, method_type: MethodType) -> proc_macro2::To
                 match method_type {
                     MethodType::Builder(name) => {
                         quote! {
-                            ton_abi::TokenValue::Int(ton_abi::Int { number: num_bigint::BigInt::from(self.#name), size: #size })
+                            ton_abi::TokenValue::Int(ton_abi::Int { number: ton_token_parser::bigint::BigInt::from(self.#name), size: #size })
                         }
                     }
                     MethodType::Parser => {
@@ -281,7 +281,7 @@ fn get_handler(type_name: &TypeName, method_type: MethodType) -> proc_macro2::To
                 match method_type {
                     MethodType::Builder(name) => {
                         quote! {
-                            ton_abi::TokenValue::Int(ton_abi::Int { number: num_bigint::BigInt::from(self.#name), size: #size })
+                            ton_abi::TokenValue::Int(ton_abi::Int { number: ton_token_parser::bigint::BigInt::from(self.#name), size: #size })
                         }
                     }
                     MethodType::Parser => {
@@ -296,7 +296,7 @@ fn get_handler(type_name: &TypeName, method_type: MethodType) -> proc_macro2::To
                 match method_type {
                     MethodType::Builder(name) => {
                         quote! {
-                            ton_abi::TokenValue::Int(ton_abi::Int { number: num_bigint::BigInt::from(self.#name), size: #size })
+                            ton_abi::TokenValue::Int(ton_abi::Int { number: ton_token_parser::bigint::BigInt::from(self.#name), size: #size })
                         }
                     }
                     MethodType::Parser => {
@@ -311,7 +311,7 @@ fn get_handler(type_name: &TypeName, method_type: MethodType) -> proc_macro2::To
                 match method_type {
                     MethodType::Builder(name) => {
                         quote! {
-                            ton_abi::TokenValue::Int(ton_abi::Int { number: num_bigint::BigInt::from(self.#name), size: #size })
+                            ton_abi::TokenValue::Int(ton_abi::Int { number: ton_token_parser::bigint::BigInt::from(self.#name), size: #size })
                         }
                     }
                     MethodType::Parser => {
@@ -326,7 +326,7 @@ fn get_handler(type_name: &TypeName, method_type: MethodType) -> proc_macro2::To
                 match method_type {
                     MethodType::Builder(name) => {
                         quote! {
-                            ton_abi::TokenValue::Int(ton_abi::Int { number: num_bigint::BigInt::from(self.#name), size: #size })
+                            ton_abi::TokenValue::Int(ton_abi::Int { number: ton_token_parser::bigint::BigInt::from(self.#name), size: #size })
                         }
                     }
                     MethodType::Parser => {
@@ -346,7 +346,7 @@ fn get_handler(type_name: &TypeName, method_type: MethodType) -> proc_macro2::To
                 match method_type {
                     MethodType::Builder(name) => {
                         quote! {
-                            ton_abi::TokenValue::Uint(ton_abi::Uint { number: num_bigint::BigUint::from(self.#name), size: #size })
+                            ton_abi::TokenValue::Uint(ton_abi::Uint { number: ton_token_parser::bigint::BigUint::from(self.#name), size: #size })
                         }
                     }
                     MethodType::Parser => {
@@ -361,7 +361,7 @@ fn get_handler(type_name: &TypeName, method_type: MethodType) -> proc_macro2::To
                 match method_type {
                     MethodType::Builder(name) => {
                         quote! {
-                            ton_abi::TokenValue::Uint(ton_abi::Uint { number: num_bigint::BigUint::from(self.#name), size: #size })
+                            ton_abi::TokenValue::Uint(ton_abi::Uint { number: ton_token_parser::bigint::BigUint::from(self.#name), size: #size })
                         }
                     }
                     MethodType::Parser => {
@@ -376,7 +376,7 @@ fn get_handler(type_name: &TypeName, method_type: MethodType) -> proc_macro2::To
                 match method_type {
                     MethodType::Builder(name) => {
                         quote! {
-                            ton_abi::TokenValue::Uint(ton_abi::Uint { number: num_bigint::BigUint::from(self.#name), size: #size })
+                            ton_abi::TokenValue::Uint(ton_abi::Uint { number: ton_token_parser::bigint::BigUint::from(self.#name), size: #size })
                         }
                     }
                     MethodType::Parser => {
@@ -391,7 +391,7 @@ fn get_handler(type_name: &TypeName, method_type: MethodType) -> proc_macro2::To
                 match method_type {
                     MethodType::Builder(name) => {
                         quote! {
-                            ton_abi::TokenValue::Uint(ton_abi::Uint { number: num_bigint::BigUint::from(self.#name), size: #size })
+                            ton_abi::TokenValue::Uint(ton_abi::Uint { number: ton_token_parser::bigint::BigUint::from(self.#name), size: #size })
                         }
                     }
                     MethodType::Parser => {
@@ -406,7 +406,7 @@ fn get_handler(type_name: &TypeName, method_type: MethodType) -> proc_macro2::To
                 match method_type {
                     MethodType::Builder(name) => {
                         quote! {
-                            ton_abi::TokenValue::Uint(ton_abi::Uint { number: num_bigint::BigUint::from(self.#name), size: #size })
+                            ton_abi::TokenValue::Uint(ton_abi::Uint { number: ton_token_parser::bigint::BigUint::from(self.#name), size: #size })
                         }
                     }
                     MethodType::Parser => {
@@ -421,7 +421,7 @@ fn get_handler(type_name: &TypeName, method_type: MethodType) -> proc_macro2::To
                 match method_type {
                     MethodType::Builder(name) => {
                         quote! {
-                            ton_abi::TokenValue::Uint(ton_abi::Uint { number: num_bigint::BigUint::from_bytes_be(self.#name.as_slice()), size: #size })
+                            ton_abi::TokenValue::Uint(ton_abi::Uint { number: ton_token_parser::bigint::BigUint::from_bytes_be(self.#name.as_slice()), size: #size })
                         }
                     }
                     MethodType::Parser => {
