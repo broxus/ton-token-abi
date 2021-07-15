@@ -1,6 +1,6 @@
 use ton_abi::{Token, TokenValue, Uint};
 use ton_token_abi::TokenAbi;
-use ton_token_packer::BuildToken;
+use ton_token_packer::BuildTokenValue;
 use ton_token_unpacker::{UnpackToken, UnpackerError};
 
 #[derive(TokenAbi)]

@@ -193,6 +193,22 @@ where
     }
 }
 
+impl<T> UnpackToken<Vec<T>> for TokenValue
+where
+    T: StandaloneToken,
+    TokenValue: UnpackToken<T>,
+{
+    fn unpack(self) -> ContractResult<Vec<T>> {
+        match self {
+            TokenValue::Array(tokens) | TokenValue::FixedArray(tokens) => tokens,
+            _ => return Err(UnpackerError::InvalidAbi),
+        }
+        .into_iter()
+        .map(UnpackToken::unpack)
+        .collect()
+    }
+}
+
 impl<T> UnpackToken<T> for Token
 where
     TokenValue: UnpackToken<T>,
@@ -201,6 +217,20 @@ where
         self.value.unpack()
     }
 }
+
+pub trait StandaloneToken {}
+impl StandaloneToken for MsgAddressInt {}
+impl StandaloneToken for MsgAddrStd {}
+impl StandaloneToken for UInt256 {}
+impl StandaloneToken for BigUint {}
+impl StandaloneToken for BigInt {}
+impl StandaloneToken for u16 {}
+impl StandaloneToken for u32 {}
+impl StandaloneToken for u64 {}
+impl StandaloneToken for u128 {}
+impl StandaloneToken for bool {}
+impl StandaloneToken for Vec<u8> {}
+impl StandaloneToken for TokenValue {}
 
 pub type ContractResult<T> = Result<T, UnpackerError>;
 

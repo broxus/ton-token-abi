@@ -2,7 +2,7 @@ use num_traits::ToPrimitive;
 use ton_abi::TokenValue;
 use ton_abi::{Token, Uint};
 use ton_token_abi::TokenAbi;
-use ton_token_packer::BuildToken;
+use ton_token_packer::BuildTokenValue;
 use ton_token_unpacker::{ContractResult, UnpackToken, UnpackerError};
 
 #[derive(TokenAbi)]

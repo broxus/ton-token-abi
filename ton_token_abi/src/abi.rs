@@ -16,19 +16,24 @@ pub fn impl_derive(input: syn::DeriveInput) -> Result<proc_macro2::TokenStream, 
     let ident = &container.ident;
     let result = match &container.data {
         Data::Enum(variants) => {
-            let body = get_enum_body(&container, variants);
+            let body = serialize_enum_unpacker(&container, variants);
             quote! {
+                /*impl ton_token_packer::PackTokens for #ident {
+                    fn pack(self) -> Vec<ton_abi::Token> {
+
+                    }
+                }*/
+
                 impl ton_token_unpacker::UnpackToken<#ident> for ton_abi::TokenValue {
                     fn unpack(self) -> ton_token_unpacker::ContractResult<#ident> {
                         #body
                     }
                 }
-
             }
         }
         Data::Struct(_, fields) => {
-            let body_plain = get_packer_body(&container, fields, StructType::Plain);
-            let body_tuple = get_packer_body(&container, fields, StructType::Tuple);
+            let body_plain = serialize_struct_packer(&container, fields, StructType::Plain);
+            let body_tuple = serialize_struct_packer(&container, fields, StructType::Tuple);
             let token_packer = quote! {
                 impl ton_token_packer::PackTokens for #ident {
                     fn pack(self) -> Vec<ton_abi::Token> {
@@ -36,15 +41,15 @@ pub fn impl_derive(input: syn::DeriveInput) -> Result<proc_macro2::TokenStream, 
                     }
                 }
 
-                impl ton_token_packer::BuildToken for #ident {
-                    fn token(self, name: &str) -> ton_abi::Token {
+                impl ton_token_packer::BuildTokenValue for #ident {
+                    fn token_value(self) -> ton_abi::TokenValue {
                         #body_tuple
                     }
                 }
             };
 
             if container.attrs.plain {
-                let body = get_unpacker_body(&container, fields, StructType::Plain);
+                let body = serialize_struct_unpacker(&container, fields, StructType::Plain);
                 quote! {
                     impl ton_token_unpacker::UnpackToken<#ident> for Vec<ton_abi::Token> {
                         fn unpack(self) -> ton_token_unpacker::ContractResult<#ident> {
@@ -55,7 +60,7 @@ pub fn impl_derive(input: syn::DeriveInput) -> Result<proc_macro2::TokenStream, 
                     #token_packer
                 }
             } else {
-                let body = get_unpacker_body(&container, fields, StructType::Tuple);
+                let body = serialize_struct_unpacker(&container, fields, StructType::Tuple);
                 quote! {
                     impl ton_token_unpacker::UnpackToken<#ident> for ton_abi::TokenValue {
                         fn unpack(self) -> ton_token_unpacker::ContractResult<#ident> {
@@ -71,7 +76,10 @@ pub fn impl_derive(input: syn::DeriveInput) -> Result<proc_macro2::TokenStream, 
     Ok(result)
 }
 
-fn get_enum_body(_container: &Container, variants: &[Variant]) -> proc_macro2::TokenStream {
+fn serialize_enum_unpacker(
+    _container: &Container,
+    variants: &[Variant],
+) -> proc_macro2::TokenStream {
     let build_variants = variants
         .iter()
         .filter_map(|variant| {
@@ -101,7 +109,7 @@ fn get_enum_body(_container: &Container, variants: &[Variant]) -> proc_macro2::T
     }
 }
 
-fn get_packer_body(
+fn serialize_struct_packer(
     _container: &Container,
     fields: &[Field],
     struct_type: StructType,
@@ -123,7 +131,7 @@ fn get_packer_body(
             match &f.attrs.pack_with {
                 Some(data) => {
                     quote! {
-                        tokens.push(#data(self.#name, #field_name))
+                        tokens.push(#data(#field_name, self.#name))
                     }
                 }
                 None => match &f.attrs.type_name {
@@ -135,7 +143,7 @@ fn get_packer_body(
                     }
                     None => {
                         quote! {
-                            tokens.push(self.#name.token(#field_name))
+                            tokens.push(ton_abi::Token::new(#field_name, self.#name.token_value()))
                         }
                     }
                 },
@@ -155,13 +163,13 @@ fn get_packer_body(
             quote! {
                 #definition
                 #(#build_fields;)*
-                return tokens.token(name);
+                return ton_abi::TokenValue::Tuple(tokens);
             }
         }
     }
 }
 
-fn get_unpacker_body(
+fn serialize_struct_unpacker(
     container: &Container,
     fields: &[Field],
     struct_type: StructType,

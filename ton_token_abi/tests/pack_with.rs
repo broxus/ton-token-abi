@@ -12,7 +12,7 @@ struct Data {
     value: u32,
 }
 
-fn external_builder(value: u32, name: &str) -> Token {
+fn external_builder(name: &str, value: u32) -> Token {
     Token::new(
         name,
         TokenValue::Uint(ton_abi::Uint {

@@ -8,4 +8,5 @@ fn tests() {
     t.pass("tests/struct.rs");
     t.pass("tests/types.rs");
     t.pass("tests/unpack_with.rs");
+    t.pass("tests/vec.rs");
 }
