@@ -16,19 +16,23 @@ pub fn impl_derive(input: syn::DeriveInput) -> Result<proc_macro2::TokenStream, 
     let ident = &container.ident;
     let result = match &container.data {
         Data::Enum(variants) => {
-            let body = serialize_enum_unpacker(&container, variants);
+            let body_packer = serialize_enum_packer(&container, variants);
+            let body_unpacker = serialize_enum_unpacker(&container, variants);
             quote! {
-                /*impl ton_token_packer::PackTokens for #ident {
-                    fn pack(self) -> Vec<ton_abi::Token> {
-
+                impl ton_token_packer::BuildTokenValue for #ident {
+                    fn token_value(self) -> ton_abi::TokenValue {
+                        #body_packer
                     }
-                }*/
+                }
 
                 impl ton_token_unpacker::UnpackToken<#ident> for ton_abi::TokenValue {
                     fn unpack(self) -> ton_token_unpacker::ContractResult<#ident> {
-                        #body
+                        #body_unpacker
                     }
                 }
+
+                impl ton_token_packer::StandaloneToken for #ident {}
+                impl ton_token_unpacker::StandaloneToken for #ident {}
             }
         }
         Data::Struct(_, fields) => {
@@ -74,6 +78,32 @@ pub fn impl_derive(input: syn::DeriveInput) -> Result<proc_macro2::TokenStream, 
         }
     };
     Ok(result)
+}
+
+fn serialize_enum_packer(_container: &Container, variants: &[Variant]) -> proc_macro2::TokenStream {
+    let build_variants = variants
+        .iter()
+        .filter_map(|variant| {
+            variant
+                .original
+                .discriminant
+                .as_ref()
+                .map(|(_, discriminant)| (variant.ident.clone(), discriminant))
+        })
+        .map(|(ident, discriminant)| {
+            let token = quote::ToTokens::to_token_stream(discriminant).to_string();
+            let number = token.parse::<u8>().unwrap();
+
+            quote! {
+                EventType::#ident => #number.token_value()
+            }
+        });
+
+    quote! {
+        match self {
+            #(#build_variants,)*
+        }
+    }
 }
 
 fn serialize_enum_unpacker(
