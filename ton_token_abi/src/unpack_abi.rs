@@ -119,7 +119,10 @@ fn serialize_struct(
                     if name == #field_name {
                         #try_unpack
                     } else {
-                        return Err(ton_token_unpacker::UnpackerError::InvalidAbi);
+                        return Err(ton_token_unpacker::UnpackerError::InvalidName{
+                            expected: #field_name.to_string(),
+                            found: name,
+                        });
                     }
                 }
             }

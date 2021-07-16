@@ -265,4 +265,6 @@ pub type ContractResult<T> = Result<T, UnpackerError>;
 pub enum UnpackerError {
     #[error("Invalid ABI")]
     InvalidAbi,
+    #[error("Invalid name (expected {expected:?}, found {found:?})")]
+    InvalidName { expected: String, found: String },
 }

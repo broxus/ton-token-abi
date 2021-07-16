@@ -1,3 +1,4 @@
+use std::fmt::Display;
 use ton_abi::{Token, TokenValue, Uint};
 use ton_token_abi::UnpackAbi;
 use ton_token_unpacker::{UnpackToken, UnpackerError};
@@ -14,6 +15,10 @@ struct InvalidSt {
     _field: u32,
 }
 
+fn assert<T: Display>(expected: &str, value: T) {
+    assert_eq!(expected, value.to_string());
+}
+
 fn main() {
     let field = Token::new("validField", TokenValue::Uint(Uint::new(10, 32)));
     let tokens = vec![field];
@@ -21,7 +26,10 @@ fn main() {
     let tuple = Token::new("tuple", TokenValue::Tuple(tokens));
 
     let invalid: Result<InvalidSt, UnpackerError> = tuple.clone().unpack();
-    assert!(invalid.is_err());
+    assert(
+        "Invalid name (expected \"invalidField\", found \"validField\")",
+        invalid.err().unwrap(),
+    );
 
     let valid: Result<ValidSt, UnpackerError> = tuple.unpack();
     assert!(valid.is_ok());
