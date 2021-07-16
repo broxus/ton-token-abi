@@ -1,4 +1,5 @@
-pub use num_bigint as bigint;
+pub use num_bigint;
+
 use num_bigint::{BigInt, BigUint};
 use ton_abi::{Token, TokenValue};
 use ton_block::{MsgAddrStd, MsgAddress, MsgAddressInt};

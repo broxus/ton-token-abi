@@ -2,7 +2,6 @@ use std::str::FromStr;
 
 use num_bigint::BigUint;
 use num_traits::FromPrimitive;
-use num_traits::ToPrimitive;
 use ton_abi::TokenValue;
 use ton_abi::{Token, Uint};
 use ton_block::{MsgAddress, MsgAddressInt};

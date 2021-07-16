@@ -192,31 +192,36 @@ fn get_handler(type_name: &TypeName) -> proc_macro2::TokenStream {
             if *size <= 8 {
                 quote! {
                     ton_abi::TokenValue::Int(ton_abi::Int { number: value, size: #size }) => {
-                        value.to_i8().ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
+                        ton_token_unpacker::num_traits::ToPrimitive::to_i8(&value)
+                        .ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
                     },
                 }
             } else if *size > 8 && *size <= 16 {
                 quote! {
                     ton_abi::TokenValue::Int(ton_abi::Int { number: value, size: #size }) => {
-                        value.to_i16().ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
+                        ton_token_unpacker::num_traits::ToPrimitive::to_i16(&value)
+                        .ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
                     },
                 }
             } else if *size > 16 && *size <= 32 {
                 quote! {
                     ton_abi::TokenValue::Int(ton_abi::Int { number: value, size: #size }) => {
-                        value.to_i32().ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
+                        ton_token_unpacker::num_traits::ToPrimitive::to_i32(&value)
+                        .ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
                     },
                 }
             } else if *size > 32 && *size <= 64 {
                 quote! {
                     ton_abi::TokenValue::Int(ton_abi::Int { number: value, size: #size }) => {
-                        value.to_i64().ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
+                        ton_token_unpacker::num_traits::ToPrimitive::to_i64(&value)
+                        .ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
                     },
                 }
             } else if *size > 64 && *size <= 128 {
                 quote! {
                     ton_abi::TokenValue::Int(ton_abi::Int { number: value, size: #size }) => {
-                        value.to_i128().ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
+                        ton_token_unpacker::num_traits::ToPrimitive::to_i128(&value)
+                        .ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
                     },
                 }
             } else {
@@ -227,31 +232,36 @@ fn get_handler(type_name: &TypeName) -> proc_macro2::TokenStream {
             if *size <= 8 {
                 quote! {
                     ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: #size }) => {
-                        value.to_u8().ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
+                        ton_token_unpacker::num_traits::ToPrimitive::to_u8(&value)
+                        .ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
                     },
                 }
             } else if *size > 8 && *size <= 16 {
                 quote! {
                     ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: #size }) => {
-                        value.to_u16().ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
+                        ton_token_unpacker::num_traits::ToPrimitive::to_u16(&value)
+                        .ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
                     },
                 }
             } else if *size > 16 && *size <= 32 {
                 quote! {
                     ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: #size }) => {
-                        value.to_u32().ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
+                        ton_token_unpacker::num_traits::ToPrimitive::to_u32(&value)
+                        .ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
                     },
                 }
             } else if *size > 32 && *size <= 64 {
                 quote! {
                     ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: #size }) => {
-                        value.to_u64().ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
+                        ton_token_unpacker::num_traits::ToPrimitive::to_u64(&value)
+                        .ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
                     },
                 }
             } else if *size > 64 && *size <= 128 {
                 quote! {
                     ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: #size }) => {
-                        value.to_u128().ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
+                        ton_token_unpacker::num_traits::ToPrimitive::to_u128(&value)
+                        .ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
                     },
                 }
             } else if *size > 128 && *size <= 256 {

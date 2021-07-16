@@ -1,3 +1,5 @@
+pub use num_traits;
+
 use num_bigint::{BigInt, BigUint};
 use num_traits::ToPrimitive;
 use ton_abi::{Token, TokenValue};
@@ -259,7 +261,7 @@ impl StandaloneToken for TokenValue {}
 
 pub type ContractResult<T> = Result<T, UnpackerError>;
 
-#[derive(thiserror::Error, Debug, Copy, Clone)]
+#[derive(thiserror::Error, Debug, Clone)]
 pub enum UnpackerError {
     #[error("Invalid ABI")]
     InvalidAbi,
