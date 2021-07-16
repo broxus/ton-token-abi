@@ -5,12 +5,11 @@ use num_traits::FromPrimitive;
 use ton_abi::TokenValue;
 use ton_abi::{Token, Uint};
 use ton_block::{MsgAddress, MsgAddressInt};
-use ton_token_abi::TokenAbi;
-use ton_token_packer::BuildTokenValue;
+use ton_token_abi::UnpackAbi;
 use ton_token_unpacker::UnpackToken;
 use ton_types::UInt256;
 
-#[derive(TokenAbi, Debug)]
+#[derive(UnpackAbi, Debug)]
 #[abi(plain)]
 pub struct InternalTransfer {
     #[abi]

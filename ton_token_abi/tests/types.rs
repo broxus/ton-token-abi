@@ -2,11 +2,11 @@ use num_bigint::BigUint;
 use num_traits::FromPrimitive;
 use num_traits::ToPrimitive;
 use ton_abi::{Int, Token, TokenValue, Uint};
-use ton_token_abi::TokenAbi;
+use ton_token_abi::UnpackAbi;
 use ton_token_unpacker::UnpackToken;
 use ton_types::UInt256;
 
-#[derive(TokenAbi)]
+#[derive(UnpackAbi)]
 #[abi(plain)]
 struct Data {
     #[abi(int8)]

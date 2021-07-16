@@ -1,9 +1,34 @@
-pub use num_bigint as bigint;
 use num_bigint::{BigInt, BigUint};
 use num_traits::ToPrimitive;
 use ton_abi::{Token, TokenValue};
 use ton_block::{MsgAddrStd, MsgAddressInt};
 use ton_types::{Cell, UInt256};
+
+pub trait IntoUnpacker: Sized {
+    type Iter: Iterator<Item = Token>;
+
+    fn into_unpacker(self) -> ContractOutputUnpacker<Self::Iter>;
+}
+
+impl IntoUnpacker for Vec<Token> {
+    type Iter = std::vec::IntoIter<Token>;
+
+    fn into_unpacker(self) -> ContractOutputUnpacker<Self::Iter> {
+        ContractOutputUnpacker(self.into_iter())
+    }
+}
+
+#[derive(Debug)]
+pub struct ContractOutputUnpacker<I>(I);
+
+impl<I: Iterator<Item = Token>> ContractOutputUnpacker<I> {
+    pub fn unpack_next<T>(&mut self) -> ContractResult<T>
+    where
+        TokenValue: UnpackToken<T>,
+    {
+        self.0.next().unpack()
+    }
+}
 
 pub trait UnpackToken<T> {
     fn unpack(self) -> ContractResult<T>;

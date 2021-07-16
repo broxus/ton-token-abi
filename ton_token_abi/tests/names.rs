@@ -1,15 +1,14 @@
 use ton_abi::{Token, TokenValue, Uint};
-use ton_token_abi::TokenAbi;
-use ton_token_packer::BuildTokenValue;
+use ton_token_abi::UnpackAbi;
 use ton_token_unpacker::{UnpackToken, UnpackerError};
 
-#[derive(TokenAbi)]
+#[derive(UnpackAbi)]
 struct ValidSt {
     #[abi(name = "validField")]
     _field: u32,
 }
 
-#[derive(TokenAbi)]
+#[derive(UnpackAbi)]
 struct InvalidSt {
     #[abi(name = "invalidField")]
     _field: u32,

@@ -1,8 +1,8 @@
-use ton_token_abi::TokenAbi;
+use ton_token_abi::{PackAbi, UnpackAbi};
 use ton_token_packer::BuildTokenValue;
 use ton_token_unpacker::UnpackToken;
 
-#[derive(TokenAbi)]
+#[derive(PackAbi, UnpackAbi)]
 struct Data {
     #[abi(name = "vector")]
     vec: Vec<u32>,
@@ -10,7 +10,7 @@ struct Data {
     complex: Complex,
 }
 
-#[derive(TokenAbi)]
+#[derive(PackAbi, UnpackAbi)]
 struct Complex {
     #[abi]
     value: u32,

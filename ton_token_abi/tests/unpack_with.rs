@@ -1,17 +1,16 @@
 use num_traits::ToPrimitive;
 use ton_abi::TokenValue;
 use ton_abi::{Token, Uint};
-use ton_token_abi::TokenAbi;
-use ton_token_packer::BuildTokenValue;
+use ton_token_abi::UnpackAbi;
 use ton_token_unpacker::{ContractResult, UnpackToken, UnpackerError};
 
-#[derive(TokenAbi)]
+#[derive(UnpackAbi)]
 struct Data {
-    #[abi(unpack_with = "external_parser")]
+    #[abi(unpack_with = "external_unpacker")]
     value: u32,
 }
 
-fn external_parser(value: &TokenValue) -> ContractResult<u32> {
+fn external_unpacker(value: &TokenValue) -> ContractResult<u32> {
     match value {
         ton_abi::TokenValue::Uint(ton_abi::Uint {
             number: value,

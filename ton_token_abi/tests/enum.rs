@@ -1,10 +1,10 @@
 use num_traits::ToPrimitive;
 use ton_abi::Uint;
-use ton_token_abi::TokenAbi;
+use ton_token_abi::{PackAbi, UnpackAbi};
 use ton_token_packer::BuildTokenValue;
 use ton_token_unpacker::UnpackToken;
 
-#[derive(TokenAbi, PartialEq, Debug)]
+#[derive(PackAbi, UnpackAbi, PartialEq, Debug)]
 enum EventType {
     ETH = 0,
     TON = 1,

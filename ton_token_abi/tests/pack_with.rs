@@ -1,18 +1,18 @@
 use num_bigint::BigUint;
 use ton_abi::Token;
 use ton_abi::TokenValue;
-use ton_token_abi::TokenAbi;
+use ton_token_abi::{PackAbi, UnpackAbi};
 use ton_token_packer::PackTokens;
 use ton_token_unpacker::UnpackToken;
 
-#[derive(TokenAbi)]
+#[derive(PackAbi, UnpackAbi)]
 #[abi(plain)]
 struct Data {
-    #[abi(name = "value", pack_with = "external_builder")]
+    #[abi(name = "value", pack_with = "external_packer")]
     value: u32,
 }
 
-fn external_builder(name: &str, value: u32) -> Token {
+fn external_packer(name: &str, value: u32) -> Token {
     Token::new(
         name,
         TokenValue::Uint(ton_abi::Uint {

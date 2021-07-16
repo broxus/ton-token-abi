@@ -6,12 +6,12 @@ use num_traits::ToPrimitive;
 use ton_abi::TokenValue;
 use ton_abi::{Token, Uint};
 use ton_block::{MsgAddress, MsgAddressInt};
-use ton_token_abi::TokenAbi;
+use ton_token_abi::{PackAbi, UnpackAbi};
 use ton_token_packer::BuildTokenValue;
 use ton_token_unpacker::UnpackToken;
 use ton_types::UInt256;
 
-#[derive(TokenAbi, Clone)]
+#[derive(PackAbi, UnpackAbi, Clone)]
 struct PendingTransaction {
     #[abi(uint64)]
     id: u64,
@@ -37,7 +37,7 @@ struct PendingTransaction {
     complex: Complex,
 }
 
-#[derive(TokenAbi, Clone)]
+#[derive(PackAbi, UnpackAbi, Clone)]
 struct Complex {
     #[abi]
     number: u8,
@@ -47,7 +47,7 @@ struct Complex {
     public_key: Vec<u8>,
 }
 
-fn test_parser() -> PendingTransaction {
+fn test_unpacker() -> PendingTransaction {
     let number = Token::new("number", TokenValue::Uint(Uint::new(33, 8)));
     let flag = Token::new("flag", TokenValue::Bool(true));
     let public_key = Token::new(
@@ -107,7 +107,7 @@ fn test_parser() -> PendingTransaction {
     parsed
 }
 
-fn test_builder(data: PendingTransaction) -> PendingTransaction {
+fn test_packer(data: PendingTransaction) -> PendingTransaction {
     let token = data.token_value();
     let parsed: PendingTransaction = token.unpack().unwrap();
 
@@ -115,7 +115,7 @@ fn test_builder(data: PendingTransaction) -> PendingTransaction {
 }
 
 fn main() {
-    let data = test_parser();
+    let data = test_unpacker();
     assert_eq!(data.id, 10);
     assert_eq!(data.confirmations_mask, 5);
     assert_eq!(data.signs_required, 7);
@@ -138,7 +138,7 @@ fn main() {
     );
     assert_eq!(data.complex.flag, true);
 
-    let new_data = test_builder(data.clone());
+    let new_data = test_packer(data.clone());
     assert_eq!(data.id, new_data.id);
     assert_eq!(data.confirmations_mask, new_data.confirmations_mask);
     assert_eq!(data.signs_required, new_data.signs_required);
