@@ -59,7 +59,9 @@ enum StructType {
     Plain,
 }
 
-fn serialize_enum(_container: &Container, variants: &[Variant]) -> proc_macro2::TokenStream {
+fn serialize_enum(container: &Container, variants: &[Variant]) -> proc_macro2::TokenStream {
+    let name = &container.ident;
+
     let build_variants = variants
         .iter()
         .filter_map(|variant| {
@@ -74,7 +76,7 @@ fn serialize_enum(_container: &Container, variants: &[Variant]) -> proc_macro2::
             let number = token.parse::<u8>().unwrap();
 
             quote! {
-                EventType::#ident => #number.token_value()
+                #name::#ident => #number.token_value()
             }
         });
 
