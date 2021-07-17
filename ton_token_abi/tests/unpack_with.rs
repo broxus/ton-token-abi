@@ -16,7 +16,7 @@ fn external_unpacker(value: &TokenValue) -> ContractResult<u32> {
             number: value,
             size: 20,
         }) => value.to_u32().ok_or(UnpackerError::InvalidAbi),
-        _ => return Err(UnpackerError::InvalidAbi),
+        _ => Err(UnpackerError::InvalidAbi),
     }
 }
 

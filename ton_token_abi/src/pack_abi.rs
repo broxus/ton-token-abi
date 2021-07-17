@@ -148,7 +148,7 @@ fn serialize_struct(
 fn get_handler(type_name: &TypeName, name: &Ident) -> proc_macro2::TokenStream {
     match type_name {
         TypeName::Int(size) => {
-            if *size <= 128 {
+            if *size <= 8 {
                 quote! {
                     ton_abi::TokenValue::Int(ton_abi::Int { number: ton_token_packer::num_bigint::BigInt::from(self.#name), size: #size })
                 }

@@ -305,7 +305,7 @@ impl TypeName {
         } else if input.starts_with("int") {
             let size = match input.trim_start_matches("int").parse::<usize>() {
                 Ok(size) => {
-                    if size <= 128 {
+                    if size <= 8 {
                         size
                     } else {
                         return TypeName::None;

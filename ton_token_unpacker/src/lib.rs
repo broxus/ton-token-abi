@@ -1,6 +1,5 @@
 pub use num_traits;
 
-use num_bigint::{BigInt, BigUint};
 use num_traits::ToPrimitive;
 use ton_abi::{Token, TokenValue};
 use ton_block::{MsgAddrStd, MsgAddressInt};
@@ -88,24 +87,6 @@ impl UnpackToken<String> for TokenValue {
     }
 }
 
-impl UnpackToken<BigUint> for TokenValue {
-    fn unpack(self) -> ContractResult<BigUint> {
-        match self {
-            TokenValue::Uint(data) => Ok(data.number),
-            _ => Err(UnpackerError::InvalidAbi),
-        }
-    }
-}
-
-impl UnpackToken<BigInt> for TokenValue {
-    fn unpack(self) -> ContractResult<BigInt> {
-        match self {
-            TokenValue::Int(data) => Ok(data.number),
-            _ => Err(UnpackerError::InvalidAbi),
-        }
-    }
-}
-
 impl UnpackToken<UInt256> for TokenValue {
     fn unpack(self) -> ContractResult<UInt256> {
         match self {
@@ -126,57 +107,55 @@ impl UnpackToken<UInt256> for TokenValue {
 
 impl UnpackToken<i8> for TokenValue {
     fn unpack(self) -> ContractResult<i8> {
-        UnpackToken::<BigInt>::unpack(self)?
-            .to_i8()
-            .ok_or(UnpackerError::InvalidAbi)
+        match self {
+            TokenValue::Int(data) => Ok(data.number.to_i8().ok_or(UnpackerError::InvalidAbi)?),
+            _ => Err(UnpackerError::InvalidAbi),
+        }
     }
 }
 
 impl UnpackToken<u8> for TokenValue {
     fn unpack(self) -> ContractResult<u8> {
-        UnpackToken::<BigUint>::unpack(self)?
-            .to_u8()
-            .ok_or(UnpackerError::InvalidAbi)
+        match self {
+            TokenValue::Uint(data) => Ok(data.number.to_u8().ok_or(UnpackerError::InvalidAbi)?),
+            _ => Err(UnpackerError::InvalidAbi),
+        }
     }
 }
 
 impl UnpackToken<u16> for TokenValue {
     fn unpack(self) -> ContractResult<u16> {
-        UnpackToken::<BigUint>::unpack(self)?
-            .to_u16()
-            .ok_or(UnpackerError::InvalidAbi)
+        match self {
+            TokenValue::Uint(data) => Ok(data.number.to_u16().ok_or(UnpackerError::InvalidAbi)?),
+            _ => Err(UnpackerError::InvalidAbi),
+        }
     }
 }
 
 impl UnpackToken<u32> for TokenValue {
     fn unpack(self) -> ContractResult<u32> {
-        UnpackToken::<BigUint>::unpack(self)?
-            .to_u32()
-            .ok_or(UnpackerError::InvalidAbi)
+        match self {
+            TokenValue::Uint(data) => Ok(data.number.to_u32().ok_or(UnpackerError::InvalidAbi)?),
+            _ => Err(UnpackerError::InvalidAbi),
+        }
     }
 }
 
 impl UnpackToken<u64> for TokenValue {
     fn unpack(self) -> ContractResult<u64> {
-        UnpackToken::<BigUint>::unpack(self)?
-            .to_u64()
-            .ok_or(UnpackerError::InvalidAbi)
+        match self {
+            TokenValue::Uint(data) => Ok(data.number.to_u64().ok_or(UnpackerError::InvalidAbi)?),
+            _ => Err(UnpackerError::InvalidAbi),
+        }
     }
 }
 
 impl UnpackToken<u128> for TokenValue {
     fn unpack(self) -> ContractResult<u128> {
-        UnpackToken::<BigUint>::unpack(self)?
-            .to_u128()
-            .ok_or(UnpackerError::InvalidAbi)
-    }
-}
-
-impl UnpackToken<i128> for TokenValue {
-    fn unpack(self) -> ContractResult<i128> {
-        UnpackToken::<BigInt>::unpack(self)?
-            .to_i128()
-            .ok_or(UnpackerError::InvalidAbi)
+        match self {
+            TokenValue::Uint(data) => Ok(data.number.to_u128().ok_or(UnpackerError::InvalidAbi)?),
+            _ => Err(UnpackerError::InvalidAbi),
+        }
     }
 }
 
@@ -249,8 +228,6 @@ pub trait StandaloneToken {}
 impl StandaloneToken for MsgAddressInt {}
 impl StandaloneToken for MsgAddrStd {}
 impl StandaloneToken for UInt256 {}
-impl StandaloneToken for BigUint {}
-impl StandaloneToken for BigInt {}
 impl StandaloneToken for u16 {}
 impl StandaloneToken for u32 {}
 impl StandaloneToken for u64 {}

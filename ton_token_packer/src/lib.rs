@@ -156,8 +156,6 @@ pub trait StandaloneToken {}
 impl StandaloneToken for MsgAddressInt {}
 impl StandaloneToken for MsgAddrStd {}
 impl StandaloneToken for UInt256 {}
-impl StandaloneToken for BigUint {}
-impl StandaloneToken for BigInt {}
 impl StandaloneToken for u16 {}
 impl StandaloneToken for u32 {}
 impl StandaloneToken for u64 {}
