@@ -286,48 +286,49 @@ impl<'c> BoolAttr<'c> {
 
 #[derive(PartialEq)]
 pub enum TypeName {
-    Int(usize),
-    Uint(usize),
+    Int8,
+    Uint8,
+    Uint16,
+    Uint32,
+    Uint64,
+    Uint128,
+    Uint160,
+    Uint256,
     Bool,
     Cell,
     Address,
+    Biguint128,
     None,
 }
 
 impl TypeName {
     fn from(input: &str) -> TypeName {
-        return if input == "bool" {
+        if input == "int8" {
+            TypeName::Int8
+        } else if input == "uint8" {
+            TypeName::Uint8
+        } else if input == "uint16" {
+            TypeName::Uint16
+        } else if input == "uint32" {
+            TypeName::Uint32
+        } else if input == "uint64" {
+            TypeName::Uint64
+        } else if input == "uint128" {
+            TypeName::Uint128
+        } else if input == "uint160" {
+            TypeName::Uint160
+        } else if input == "uint256" {
+            TypeName::Uint256
+        } else if input == "bool" {
             TypeName::Bool
         } else if input == "cell" {
             TypeName::Cell
         } else if input == "address" {
             TypeName::Address
-        } else if input.starts_with("int") {
-            let size = match input.trim_start_matches("int").parse::<usize>() {
-                Ok(size) => {
-                    if size <= 8 {
-                        size
-                    } else {
-                        return TypeName::None;
-                    }
-                }
-                Err(_) => return TypeName::None,
-            };
-            TypeName::Int(size)
-        } else if input.starts_with("uint") {
-            let size = match input.trim_start_matches("uint").parse::<usize>() {
-                Ok(size) => {
-                    if size <= 256 {
-                        size
-                    } else {
-                        return TypeName::None;
-                    }
-                }
-                Err(_) => return TypeName::None,
-            };
-            TypeName::Uint(size)
+        } else if input == "biguint128" {
+            TypeName::Biguint128
         } else {
             TypeName::None
-        };
+        }
     }
 }

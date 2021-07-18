@@ -193,69 +193,73 @@ fn try_unpack(
 
 fn get_handler(type_name: &TypeName) -> proc_macro2::TokenStream {
     match type_name {
-        TypeName::Int(size) => {
-            if *size <= 8 {
-                quote! {
-                    ton_abi::TokenValue::Int(ton_abi::Int { number: value, size: #size }) => {
-                        ton_token_unpacker::num_traits::ToPrimitive::to_i8(&value)
-                        .ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
-                    },
-                }
-            } else {
-                unreachable!()
+        TypeName::Int8 => {
+            quote! {
+                ton_abi::TokenValue::Int(ton_abi::Int { number: value, size: 8 }) => {
+                    ton_token_unpacker::num_traits::ToPrimitive::to_i8(&value)
+                    .ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
+                },
             }
         }
-        TypeName::Uint(size) => {
-            if *size <= 8 {
-                quote! {
-                    ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: #size }) => {
-                        ton_token_unpacker::num_traits::ToPrimitive::to_u8(&value)
-                        .ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
-                    },
-                }
-            } else if *size > 8 && *size <= 16 {
-                quote! {
-                    ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: #size }) => {
-                        ton_token_unpacker::num_traits::ToPrimitive::to_u16(&value)
-                        .ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
-                    },
-                }
-            } else if *size > 16 && *size <= 32 {
-                quote! {
-                    ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: #size }) => {
-                        ton_token_unpacker::num_traits::ToPrimitive::to_u32(&value)
-                        .ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
-                    },
-                }
-            } else if *size > 32 && *size <= 64 {
-                quote! {
-                    ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: #size }) => {
-                        ton_token_unpacker::num_traits::ToPrimitive::to_u64(&value)
-                        .ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
-                    },
-                }
-            } else if *size > 64 && *size <= 128 {
-                quote! {
-                    ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: #size }) => {
-                        ton_token_unpacker::num_traits::ToPrimitive::to_u128(&value)
-                        .ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
-                    },
-                }
-            } else if *size > 128 && *size <= 256 {
-                quote! {
-                    ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: #size }) => {
-                        let mut result = [0; 32];
-                        let data = value.to_bytes_be();
+        TypeName::Uint8 => {
+            quote! {
+                ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: 8 }) => {
+                    ton_token_unpacker::num_traits::ToPrimitive::to_u8(&value)
+                    .ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
+                },
+            }
+        }
+        TypeName::Uint16 => {
+            quote! {
+                ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: 16 }) => {
+                    ton_token_unpacker::num_traits::ToPrimitive::to_u16(&value)
+                    .ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
+                },
+            }
+        }
+        TypeName::Uint32 => {
+            quote! {
+                ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: 32 }) => {
+                    ton_token_unpacker::num_traits::ToPrimitive::to_u32(&value)
+                    .ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
+                },
+            }
+        }
+        TypeName::Uint64 => {
+            quote! {
+                ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: 64 }) => {
+                    ton_token_unpacker::num_traits::ToPrimitive::to_u64(&value)
+                    .ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
+                },
+            }
+        }
+        TypeName::Uint128 => {
+            quote! {
+                ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: 128 }) => {
+                    ton_token_unpacker::num_traits::ToPrimitive::to_u128(&value)
+                    .ok_or(ton_token_unpacker::UnpackerError::InvalidAbi)?
+                },
+            }
+        }
+        TypeName::Uint160 => {
+            quote! {
+                ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: 160 }) => {
+                    value
+                },
+            }
+        }
+        TypeName::Uint256 => {
+            quote! {
+                ton_abi::TokenValue::Uint(data) => {
+                    let bytes = data.number.to_bytes_be();
 
-                        let len = std::cmp::min(data.len(), 32);
-                        let offset = 32 - len;
-                        (0..len).for_each(|i| result[i + offset] = data[i]);
+                    let mut result = [0; 32];
+                    let len = std::cmp::min(bytes.len(), 32);
+                    let offset = 32 - len;
+                    (0..len).for_each(|i| result[i + offset] = bytes[i]);
 
-                        result.into()
-                    },
-                }
-            } else {
-                unreachable!()
+                    result.into()
+                },
             }
         }
         TypeName::Address => {
@@ -276,6 +280,13 @@ fn get_handler(type_name: &TypeName) -> proc_macro2::TokenStream {
         TypeName::Bool => {
             quote! {
                 ton_abi::TokenValue::Bool(value) => value,
+            }
+        }
+        TypeName::Biguint128 => {
+            quote! {
+                ton_abi::TokenValue::Uint(ton_abi::Uint { number: value, size: 128 }) => {
+                    value
+                },
             }
         }
         TypeName::None => unreachable!(),

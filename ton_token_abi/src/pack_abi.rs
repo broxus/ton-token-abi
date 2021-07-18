@@ -149,26 +149,44 @@ fn serialize_struct(
 
 fn get_handler(type_name: &TypeName, name: &Ident) -> proc_macro2::TokenStream {
     match type_name {
-        TypeName::Int(size) => {
-            if *size <= 8 {
-                quote! {
-                    ton_abi::TokenValue::Int(ton_abi::Int { number: ton_token_packer::num_bigint::BigInt::from(self.#name), size: #size })
-                }
-            } else {
-                unreachable!()
+        TypeName::Int8 => {
+            quote! {
+                ton_abi::TokenValue::Int(ton_abi::Int { number: ton_token_packer::num_bigint::BigInt::from(self.#name), size: 8 })
             }
         }
-        TypeName::Uint(size) => {
-            if *size <= 128 {
-                quote! {
-                    ton_abi::TokenValue::Uint(ton_abi::Uint { number: ton_token_packer::num_bigint::BigUint::from(self.#name), size: #size })
-                }
-            } else if *size > 128 && *size <= 256 {
-                quote! {
-                    ton_abi::TokenValue::Uint(ton_abi::Uint { number: ton_token_packer::num_bigint::BigUint::from_bytes_be(self.#name.as_slice()), size: #size })
-                }
-            } else {
-                unreachable!()
+        TypeName::Uint8 => {
+            quote! {
+                ton_abi::TokenValue::Uint(ton_abi::Uint { number: ton_token_packer::num_bigint::BigUint::from(self.#name), size: 8 })
+            }
+        }
+        TypeName::Uint16 => {
+            quote! {
+                ton_abi::TokenValue::Uint(ton_abi::Uint { number: ton_token_packer::num_bigint::BigUint::from(self.#name), size: 16 })
+            }
+        }
+        TypeName::Uint32 => {
+            quote! {
+                ton_abi::TokenValue::Uint(ton_abi::Uint { number: ton_token_packer::num_bigint::BigUint::from(self.#name), size: 32 })
+            }
+        }
+        TypeName::Uint64 => {
+            quote! {
+                ton_abi::TokenValue::Uint(ton_abi::Uint { number: ton_token_packer::num_bigint::BigUint::from(self.#name), size: 64 })
+            }
+        }
+        TypeName::Uint128 => {
+            quote! {
+                ton_abi::TokenValue::Uint(ton_abi::Uint { number: ton_token_packer::num_bigint::BigUint::from(self.#name), size: 128 })
+            }
+        }
+        TypeName::Uint160 => {
+            quote! {
+                ton_abi::TokenValue::Uint(ton_abi::Uint { number: ton_token_packer::num_bigint::BigUint::from_bytes_be(self.#name.as_slice()), size: 160 })
+            }
+        }
+        TypeName::Uint256 => {
+            quote! {
+                ton_abi::TokenValue::Uint(ton_abi::Uint { number: ton_token_packer::num_bigint::BigUint::from_bytes_be(self.#name.as_slice()), size: 256 })
             }
         }
         TypeName::Address => {
@@ -187,6 +205,11 @@ fn get_handler(type_name: &TypeName, name: &Ident) -> proc_macro2::TokenStream {
         TypeName::Bool => {
             quote! {
                 ton_abi::TokenValue::Bool(self.#name)
+            }
+        }
+        TypeName::Biguint128 => {
+            quote! {
+                ton_abi::TokenValue::Uint(ton_abi::Uint { number: ton_token_packer::num_bigint::BigUint::from_bytes_be(self.#name.as_slice()), size: 128 })
             }
         }
         TypeName::None => unreachable!(),
