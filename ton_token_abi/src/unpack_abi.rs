@@ -81,7 +81,7 @@ fn serialize_enum(container: &Container, variants: &[Variant]) -> proc_macro2::T
 
     quote! {
         match self {
-            ton_abi::TokenValue::Uint(int) => match int.number.to_u8() {
+            ton_abi::TokenValue::Uint(int) => match ton_token_unpacker::num_traits::ToPrimitive::to_u8(&int.number) {
                 #(#build_variants,)*
                 _ => Err(ton_token_unpacker::UnpackerError::InvalidAbi),
             },

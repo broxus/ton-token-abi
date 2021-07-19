@@ -5,6 +5,14 @@ use ton_abi::{Token, TokenValue};
 use ton_block::{MsgAddrStd, MsgAddressInt};
 use ton_types::{Cell, UInt256};
 
+pub trait IgnoreOutput: Sized {
+    fn ignore_output(self) -> Result<(), UnpackerError> {
+        Ok(())
+    }
+}
+
+impl IgnoreOutput for Vec<Token> {}
+
 pub trait IntoUnpacker: Sized {
     type Iter: Iterator<Item = Token>;
 
