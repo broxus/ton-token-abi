@@ -3,6 +3,7 @@ use quote::quote;
 use crate::ast::*;
 use crate::attr::TypeName;
 use crate::parsing_context::*;
+use crate::utils::*;
 
 pub fn impl_derive_unpack_abi(
     input: syn::DeriveInput,
@@ -99,11 +100,8 @@ fn serialize_struct(
 
     let build_fields = fields.iter().map(|f| {
         let name = f.original.ident.as_ref().unwrap();
-        if f.original.attrs.is_empty() {
-            quote! {
-               #name: std::default::Default::default()
-            }
-        } else {
+
+        if is_abi(&f.original.attrs) {
             let field_name = match &f.attrs.name {
                 Some(v) => v.clone(),
                 None => name.to_string(),
@@ -127,6 +125,10 @@ fn serialize_struct(
                         });
                     }
                 }
+            }
+        } else {
+            quote! {
+               #name: std::default::Default::default()
             }
         }
     });

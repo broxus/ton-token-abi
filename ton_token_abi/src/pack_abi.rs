@@ -1,9 +1,10 @@
+use proc_macro2::Ident;
 use quote::quote;
 
 use crate::ast::*;
 use crate::attr::TypeName;
 use crate::parsing_context::*;
-use proc_macro2::Ident;
+use crate::utils::*;
 
 pub fn impl_derive_pack_abi(
     input: syn::DeriveInput,
@@ -97,9 +98,7 @@ fn serialize_struct(
     };
 
     let build_fields = fields.iter().map(|f| {
-        if f.original.attrs.is_empty() {
-            quote! {} // do nothing
-        } else {
+        if is_abi(&f.original.attrs) {
             let name = f.original.ident.as_ref().unwrap();
             let field_name = match &f.attrs.name {
                 Some(v) => v.clone(),
@@ -126,6 +125,8 @@ fn serialize_struct(
                     }
                 },
             }
+        } else {
+            quote! {} // do nothing
         }
     });
 

@@ -4,6 +4,7 @@ mod pack_abi;
 mod parsing_context;
 mod symbol;
 mod unpack_abi;
+mod utils;
 
 use self::pack_abi::*;
 use self::unpack_abi::*;
